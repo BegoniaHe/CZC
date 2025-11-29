@@ -30,7 +30,7 @@ COLOR_CYAN    := \033[36m
 # Project Configuration (Customize these for your project)
 # ============================================================================
 PROJECT_NAME     := czc
-PROJECT_VERSION  := 1.0.0
+PROJECT_VERSION  := 0.0.1
 BUILD_DIR        := build
 SRC_DIRS         := src
 INCLUDE_DIRS     := include
@@ -384,7 +384,7 @@ vcpkg-install:
 		fi; \
 	else \
 		printf "$(COLOR_YELLOW)No vcpkg.json found. Creating template...\n$(COLOR_RESET)"; \
-		printf '{\n  "name": "$(PROJECT_NAME)",\n  "version": "$(PROJECT_VERSION)",\n  "dependencies": [\n    "gtest"\n  ]\n}\n' > vcpkg.json; \
+		VERSION=$$(grep -E 'project\([^\)]*VERSION[[:space:]]+[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt | sed -E 's/.*VERSION[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/'); \
 		printf "$(COLOR_GREEN)Created vcpkg.json template. Edit and run again.\n$(COLOR_RESET)"; \
 	fi
 	$(call ts_done,vcpkg Install Complete)
@@ -717,8 +717,8 @@ runbeforecommit:
 			--output-file $(BUILD_DIR)/coverage_filtered.info \
 			--ignore-errors inconsistent,unsupported,empty 2>/dev/null; \
 		SUMMARY=$$(lcov --summary $(BUILD_DIR)/coverage_filtered.info --ignore-errors inconsistent,corrupt,count 2>&1); \
-		LINE_COV=$$(echo "$$SUMMARY" | grep "lines" | grep -oE '[0-9]+\.[0-9]+%' | head -1 | sed 's/%//'); \
-		FUNC_COV=$$(echo "$$SUMMARY" | grep "functions" | grep -oE '[0-9]+\.[0-9]+%' | head -1 | sed 's/%//'); \
+		LINE_COV=$$(echo "$$SUMMARY" | grep "lines" | grep -oE '[0-9]+\.?[0-9]*%' | head -1 | sed 's/%//'); \
+		FUNC_COV=$$(echo "$$SUMMARY" | grep "functions" | grep -oE '[0-9]+\.?[0-9]*%' | head -1 | sed 's/%//'); \
 		if [ -z "$$LINE_COV" ]; then LINE_COV="0"; fi; \
 		if [ -z "$$FUNC_COV" ]; then FUNC_COV="0"; fi; \
 		printf "$(COLOR_CYAN)Line coverage:     $(COLOR_BOLD)$$LINE_COV%%$(COLOR_RESET)\n"; \
