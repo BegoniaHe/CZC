@@ -54,3 +54,9 @@ Makefile.template
 
 # copilot files
 .copilot/
+
+# Coverage output
+default.profraw
+*.profdata
+*.profraw
+coverage_html/

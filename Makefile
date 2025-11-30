@@ -34,7 +34,7 @@ PROJECT_VERSION  := 0.0.1
 BUILD_DIR        := build
 SRC_DIRS         := src
 INCLUDE_DIRS     := include
-TEST_DIRS        := tests
+TEST_DIRS        := test
 BENCHMARK_DIRS   := benchmarks
 DOCS_DIR         := docs
 
@@ -602,7 +602,7 @@ coverage:
 	@$(CMAKE) --build $(BUILD_DIR) --parallel $(NPROC)
 	@echo ""
 	@printf "$(COLOR_CYAN)Running tests with coverage...\n$(COLOR_RESET)"
-	@cd $(BUILD_DIR) && $(CTEST) --output-on-failure --parallel $(NPROC)
+	@cd $(BUILD_DIR) && LLVM_PROFILE_FILE="$(PWD)/$(BUILD_DIR)/default.profraw" $(CTEST) --output-on-failure --parallel $(NPROC)
 	@echo ""
 	@printf "$(COLOR_GREEN)$(COLOR_BOLD)===================================\n$(COLOR_RESET)"
 	@printf "$(COLOR_GREEN)$(COLOR_BOLD)Coverage build completed!\n$(COLOR_RESET)"
@@ -618,19 +618,29 @@ coverage-report:
 	@printf "$(COLOR_BLUE)$(COLOR_BOLD)===================================\n$(COLOR_RESET)"
 	@printf "$(COLOR_BLUE)$(COLOR_BOLD)Generating Coverage Report\n$(COLOR_RESET)"
 	@printf "$(COLOR_BLUE)$(COLOR_BOLD)===================================\n$(COLOR_RESET)"
-	@if command -v llvm-cov >/dev/null 2>&1 && command -v llvm-profdata >/dev/null 2>&1; then \
+	@if command -v llvm-profdata >/dev/null 2>&1 && command -v llvm-cov >/dev/null 2>&1; then \
 		printf "$(COLOR_CYAN)Using LLVM coverage tools...\n$(COLOR_RESET)"; \
 		PROFRAW=$$(find $(BUILD_DIR) -name "*.profraw" 2>/dev/null | head -1); \
 		if [ -n "$$PROFRAW" ]; then \
+			printf "$(COLOR_CYAN)Found profraw: $$PROFRAW\n$(COLOR_RESET)"; \
 			llvm-profdata merge -sparse $$PROFRAW -o $(BUILD_DIR)/coverage.profdata; \
-			if [ -f "$(TEST_EXECUTABLE_PATH)" ]; then \
-				llvm-cov show $(TEST_EXECUTABLE_PATH) -instr-profile=$(BUILD_DIR)/coverage.profdata \
-					-format=html -output-dir=$(BUILD_DIR)/coverage_html; \
-				llvm-cov report $(TEST_EXECUTABLE_PATH) -instr-profile=$(BUILD_DIR)/coverage.profdata; \
-			else \
-				printf "$(COLOR_YELLOW)Test executable not found at $(TEST_EXECUTABLE_PATH)\n$(COLOR_RESET)"; \
+			TEST_BIN=$$(find $(BUILD_DIR) -name "lexer_tests" -type f -perm +111 2>/dev/null | head -1); \
+			if [ -z "$$TEST_BIN" ]; then \
+				TEST_BIN=$$(find $(BUILD_DIR) -name "*_tests" -type f -perm +111 2>/dev/null | head -1); \
 			fi; \
-			printf "$(COLOR_GREEN)Report: $(BUILD_DIR)/coverage_html/index.html\n$(COLOR_RESET)"; \
+			if [ -n "$$TEST_BIN" ]; then \
+				printf "$(COLOR_CYAN)Using test binary: $$TEST_BIN\n$(COLOR_RESET)"; \
+				llvm-cov show $$TEST_BIN -instr-profile=$(BUILD_DIR)/coverage.profdata \
+					--sources src/ include/ \
+					-format=html -output-dir=$(BUILD_DIR)/coverage_html; \
+				echo ""; \
+				printf "$(COLOR_CYAN)Coverage Summary (source files only):\n$(COLOR_RESET)"; \
+				llvm-cov report $$TEST_BIN -instr-profile=$(BUILD_DIR)/coverage.profdata \
+					--sources src/ include/; \
+				printf "\n$(COLOR_GREEN)Report: $(BUILD_DIR)/coverage_html/index.html\n$(COLOR_RESET)"; \
+			else \
+				printf "$(COLOR_YELLOW)Test executable not found.\n$(COLOR_RESET)"; \
+			fi; \
 		else \
 			printf "$(COLOR_YELLOW)No coverage data found. Run 'make coverage' first.\n$(COLOR_RESET)"; \
 		fi; \
@@ -638,7 +648,7 @@ coverage-report:
 		printf "$(COLOR_CYAN)Using lcov for coverage...\n$(COLOR_RESET)"; \
 		lcov --capture --directory $(BUILD_DIR) --output-file $(BUILD_DIR)/coverage.info \
 			--ignore-errors inconsistent,unsupported 2>/dev/null; \
-		lcov --remove $(BUILD_DIR)/coverage.info '/usr/*' '/Library/*' '*/_deps/*' '*/vcpkg_installed/*' \
+		lcov --remove $(BUILD_DIR)/coverage.info '/usr/*' '/Library/*' '*/_deps/*' '*/vcpkg_installed/*' '*/test/*' \
 			--output-file $(BUILD_DIR)/coverage_filtered.info \
 			--ignore-errors inconsistent,unsupported,empty 2>/dev/null; \
 		genhtml $(BUILD_DIR)/coverage_filtered.info --output-directory $(BUILD_DIR)/coverage_html \
