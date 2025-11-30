@@ -179,15 +179,7 @@ Token StringScanner::scanNormalString(ScanContext &ctx, std::size_t startOffset,
       continue;
     }
 
-    // 不允许未转义的换行符
-    if (c == '\n' || c == '\r') {
-      ctx.reportError(LexerError::make(LexerErrorCode::UnterminatedString,
-                                       startLoc,
-                                       "unterminated string literal (missing "
-                                       "closing quote before end of line)"));
-      break;
-    }
-
+    // 允许多行字符串，直接嵌入换行符
     ctx.advance();
   }
 
@@ -296,7 +288,6 @@ Token StringScanner::scanTexString(ScanContext &ctx, std::size_t startOffset,
   token.setEscapeFlags(escapeFlags);
   return token;
 }
-
 
 bool StringScanner::parseHexEscape([[maybe_unused]] ScanContext &ctx,
                                    [[maybe_unused]] std::string &result) const {

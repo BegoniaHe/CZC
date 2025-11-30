@@ -21,9 +21,7 @@
 #ifndef CZC_LEXER_NUMBER_SCANNER_HPP
 #define CZC_LEXER_NUMBER_SCANNER_HPP
 
-#if __cplusplus < 202002L
-#error "C++20 or higher is required"
-#endif
+#include "czc/common/config.hpp"
 
 #include "czc/lexer/scanner.hpp"
 

@@ -13,9 +13,7 @@
 #ifndef CZC_CLI_COMMANDS_COMPILER_PHASE_HPP
 #define CZC_CLI_COMMANDS_COMPILER_PHASE_HPP
 
-#if __cplusplus < 202302L
-#error "C++23 or higher is required"
-#endif
+#include "czc/common/config.hpp"
 
 #include "czc/common/result.hpp"
 

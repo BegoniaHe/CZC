@@ -15,9 +15,7 @@
 #ifndef CZC_COMMON_RESULT_HPP
 #define CZC_COMMON_RESULT_HPP
 
-#if __cplusplus < 202302L
-#error "C++23 or higher is required"
-#endif
+#include "czc/common/config.hpp"
 
 #include <expected>
 #include <source_location>
@@ -105,7 +103,7 @@ template <typename T> [[nodiscard]] constexpr Result<T> ok(T &&value) {
 }
 
 /**
- * @brief 创建成功结果的辅助函数（void 特化）。
+ * @brief 创建成功结果的辅助函数。
  *
  * @return 成功的 VoidResult
  */

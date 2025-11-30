@@ -25,7 +25,8 @@ std::optional<char32_t> decodeChar(std::string_view str,
   char32_t codepoint;
 
   // 转换为 const unsigned char* 以保证可移植性
-  U8_NEXT(reinterpret_cast<const unsigned char *>(str.data()), i, length, codepoint);
+  U8_NEXT(reinterpret_cast<const unsigned char *>(str.data()), i, length,
+          codepoint);
 
   if (codepoint < 0) {
     bytesConsumed = 0;

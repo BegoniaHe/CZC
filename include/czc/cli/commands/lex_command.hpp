@@ -7,17 +7,18 @@
  *
  * @details
  *   实现 `czc lex` 子命令，对源文件进行词法分析。
+ *   职责分离：
+ *   - LexCommand: 处理 CLI 交互（参数解析、输出控制）
+ *   - LexerPhase: 执行词法分析逻辑（在 Driver 中使用）
  */
 
 #ifndef CZC_CLI_COMMANDS_LEX_COMMAND_HPP
 #define CZC_CLI_COMMANDS_LEX_COMMAND_HPP
 
-#if __cplusplus < 202302L
-#error "C++23 or higher is required"
-#endif
+#include "czc/common/config.hpp"
 
 #include "czc/cli/commands/command.hpp"
-#include "czc/cli/commands/compiler_phase.hpp"
+#include "czc/cli/driver.hpp"
 
 #include <filesystem>
 #include <string>
@@ -33,11 +34,17 @@ namespace czc::cli {
  *   - Trivia 模式（保留空白和注释）
  *   - 多种输出格式（Text/JSON）
  *
- *   同时实现 CompilerPhase 接口，为 Pipeline 预留扩展。
+ *   命令只负责 CLI 交互，实际词法分析由 Driver + LexerPhase 执行。
  */
-class LexCommand : public Command, public CompilerPhase {
+class LexCommand : public Command {
 public:
-  LexCommand() = default;
+  /**
+   * @brief 构造函数。
+   *
+   * @param driver 编译驱动器引用
+   */
+  explicit LexCommand(Driver &driver) : driver_(driver) {}
+
   ~LexCommand() override = default;
 
   // ========== Command 接口 ==========
@@ -74,63 +81,11 @@ public:
     return "Perform lexical analysis on source file";
   }
 
-  /**
-   * @brief 获取关联的编译阶段。
-   *
-   * @return this 指针
-   */
-  [[nodiscard]] CompilerPhase *asPhase() noexcept override { return this; }
-
-  /**
-   * @brief 获取关联的编译阶段（常量版本）。
-   *
-   * @return this 指针
-   */
-  [[nodiscard]] const CompilerPhase *asPhase() const noexcept override {
-    return this;
-  }
-
-  // ========== CompilerPhase 接口 ==========
-
-  /**
-   * @brief 获取输入数据类型。
-   *
-   * @return "source"
-   */
-  [[nodiscard]] std::string_view inputType() const noexcept override {
-    return "source";
-  }
-
-  /**
-   * @brief 获取输出数据类型。
-   *
-   * @return "tokens"
-   */
-  [[nodiscard]] std::string_view outputType() const noexcept override {
-    return "tokens";
-  }
-
-  /**
-   * @brief 执行词法分析阶段（Pipeline 接口）。
-   *
-   * @param input 输入数据（预期为源文件路径或源码内容）
-   * @param opts 阶段选项
-   * @return Token 列表，失败时返回错误
-   */
-  [[nodiscard]] Result<std::any> execute(std::any input,
-                                         const PhaseOptions &opts) override;
-
 private:
+  Driver &driver_;
   std::filesystem::path inputFile_; ///< 输入文件路径
   bool trivia_{false};              ///< 是否保留 trivia
   bool dumpTokens_{false};          ///< 是否输出所有 token
-
-  /**
-   * @brief 读取输入文件内容。
-   *
-   * @return 文件内容，失败时返回错误
-   */
-  [[nodiscard]] Result<std::string> readInputFile() const;
 };
 
 } // namespace czc::cli

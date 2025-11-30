@@ -43,8 +43,7 @@ TEST_F(LexerErrorTest, MakeError) {
 TEST_F(LexerErrorTest, ErrorCodeString) {
   SourceLocation loc(BufferID{1}, 1, 1, 0);
 
-  auto error1 =
-      LexerError::make(LexerErrorCode::InvalidCharacter, loc, "test");
+  auto error1 = LexerError::make(LexerErrorCode::InvalidCharacter, loc, "test");
   EXPECT_EQ(error1.codeString(), "L1021");
 
   auto error2 =
@@ -67,11 +66,11 @@ TEST_F(LexerErrorTest, ErrorCodeString) {
       LexerError::make(LexerErrorCode::InvalidUnicodeEscape, loc, "test");
   EXPECT_EQ(error6.codeString(), "L1014");
 
-  auto error7 = LexerError::make(LexerErrorCode::InvalidUtf8Sequence, loc, "test");
+  auto error7 =
+      LexerError::make(LexerErrorCode::InvalidUtf8Sequence, loc, "test");
   EXPECT_EQ(error7.codeString(), "L1022");
 
-  auto error8 =
-      LexerError::make(LexerErrorCode::MissingHexDigits, loc, "test");
+  auto error8 = LexerError::make(LexerErrorCode::MissingHexDigits, loc, "test");
   EXPECT_EQ(error8.codeString(), "L1001");
 
   auto error9 =
@@ -85,8 +84,7 @@ TEST_F(LexerErrorTest, ErrorCodeString) {
 
 TEST_F(LexerErrorTest, UnknownErrorCode) {
   SourceLocation loc(BufferID{1}, 1, 1, 0);
-  auto error =
-      LexerError::make(static_cast<LexerErrorCode>(9999), loc, "test");
+  auto error = LexerError::make(static_cast<LexerErrorCode>(9999), loc, "test");
   // 实现直接使用错误码数值
   EXPECT_EQ(error.codeString(), "L9999");
 }
@@ -104,7 +102,8 @@ TEST_F(LexerErrorTest, FormatErrorWithValidBuffer) {
   std::string formatted = formatError(error, sm_);
   EXPECT_TRUE(formatted.find("main.czc") != std::string::npos);
   EXPECT_TRUE(formatted.find("1:5") != std::string::npos);
-  EXPECT_TRUE(formatted.find("L1021") != std::string::npos); // InvalidCharacter = 1021
+  EXPECT_TRUE(formatted.find("L1021") !=
+              std::string::npos); // InvalidCharacter = 1021
   EXPECT_TRUE(formatted.find("unexpected character") != std::string::npos);
 }
 
@@ -131,7 +130,8 @@ TEST_F(LexerErrorTest, ErrorCollectorAddError) {
   ErrorCollector collector;
   SourceLocation loc(BufferID{1}, 1, 1, 0);
 
-  collector.add(LexerError::make(LexerErrorCode::InvalidCharacter, loc, "error1"));
+  collector.add(
+      LexerError::make(LexerErrorCode::InvalidCharacter, loc, "error1"));
   EXPECT_TRUE(collector.hasErrors());
   EXPECT_EQ(collector.count(), 1u);
 }
@@ -140,9 +140,12 @@ TEST_F(LexerErrorTest, ErrorCollectorAddMultipleErrors) {
   ErrorCollector collector;
   SourceLocation loc(BufferID{1}, 1, 1, 0);
 
-  collector.add(LexerError::make(LexerErrorCode::InvalidCharacter, loc, "error1"));
-  collector.add(LexerError::make(LexerErrorCode::InvalidNumberSuffix, loc, "error2"));
-  collector.add(LexerError::make(LexerErrorCode::UnterminatedString, loc, "error3"));
+  collector.add(
+      LexerError::make(LexerErrorCode::InvalidCharacter, loc, "error1"));
+  collector.add(
+      LexerError::make(LexerErrorCode::InvalidNumberSuffix, loc, "error2"));
+  collector.add(
+      LexerError::make(LexerErrorCode::UnterminatedString, loc, "error3"));
 
   EXPECT_EQ(collector.count(), 3u);
 
@@ -156,8 +159,10 @@ TEST_F(LexerErrorTest, ErrorCollectorClear) {
   ErrorCollector collector;
   SourceLocation loc(BufferID{1}, 1, 1, 0);
 
-  collector.add(LexerError::make(LexerErrorCode::InvalidCharacter, loc, "error1"));
-  collector.add(LexerError::make(LexerErrorCode::InvalidNumberSuffix, loc, "error2"));
+  collector.add(
+      LexerError::make(LexerErrorCode::InvalidCharacter, loc, "error1"));
+  collector.add(
+      LexerError::make(LexerErrorCode::InvalidNumberSuffix, loc, "error2"));
 
   EXPECT_EQ(collector.count(), 2u);
 

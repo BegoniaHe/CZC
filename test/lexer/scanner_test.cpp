@@ -20,7 +20,8 @@ protected:
   SourceManager sm_;
   ErrorCollector errors_;
 
-  BufferID addSource(std::string_view source, std::string filename = "test.zero") {
+  BufferID addSource(std::string_view source,
+                     std::string filename = "test.zero") {
     return sm_.addBuffer(source, std::move(filename));
   }
 

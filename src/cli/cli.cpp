@@ -9,17 +9,16 @@
 #include "czc/cli/cli.hpp"
 #include "czc/cli/commands/lex_command.hpp"
 #include "czc/cli/commands/version_command.hpp"
-#include "czc/cli/options.hpp"
 
 #include <iostream>
 
 namespace czc::cli {
 
 Cli::Cli() : app_(std::string(kProgramDescription), std::string(kProgramName)) {
-  // 设置版本标志
+  // 设置版本标志（使用统一的版本号）
   app_.set_version_flag("--version,-V", std::string(kProgramName) +
                                             " version " +
-                                            std::string(kVersion));
+                                            std::string(kVersion.string));
 
   // 要求至少一个子命令
   app_.require_subcommand(1);
@@ -42,7 +41,7 @@ int Cli::run(int argc, char **argv) {
         return result.value();
       }
       // 输出错误信息
-      std::cerr << "Error: " << result.error().format() << "\n";
+      driver_.diagnostics().error(result.error().message, result.error().code);
       return 1;
     }
 
@@ -53,19 +52,19 @@ int Cli::run(int argc, char **argv) {
 }
 
 void Cli::registerCommands() {
-  registerCommand<VersionCommand>();
-  registerCommand<LexCommand>();
+  registerSimpleCommand<VersionCommand>();
+  registerCommandWithDriver<LexCommand>();
 }
 
 void Cli::setupGlobalOptions() {
-  auto &opts = cliOptions();
+  auto &ctx = driver_.context();
 
   // 详细输出选项
   app_.add_flag(
           "-v,--verbose",
-          [&opts](std::int64_t count) {
+          [&ctx](std::int64_t count) {
             if (count > 0) {
-              opts.global.logLevel = LogLevel::Verbose;
+              ctx.global().logLevel = LogLevel::Verbose;
             }
           },
           "Enable verbose output")
@@ -74,20 +73,20 @@ void Cli::setupGlobalOptions() {
   // 静默模式
   app_.add_flag(
           "-q,--quiet",
-          [&opts](std::int64_t count) {
+          [&ctx](std::int64_t count) {
             if (count > 0) {
-              opts.global.logLevel = LogLevel::Quiet;
+              ctx.global().logLevel = LogLevel::Quiet;
             }
           },
           "Suppress non-error output")
       ->group("Global Options");
 
   // 输出文件
-  app_.add_option("-o,--output", opts.output.file, "Output file path")
+  app_.add_option("-o,--output", ctx.output().file, "Output file path")
       ->group("Output Options");
 
   // 输出格式
-  app_.add_option("-f,--format", opts.output.format,
+  app_.add_option("-f,--format", ctx.output().format,
                   "Output format (text, json)")
       ->transform(CLI::CheckedTransformer(
           std::map<std::string, OutputFormat>{{"text", OutputFormat::Text},
@@ -98,9 +97,9 @@ void Cli::setupGlobalOptions() {
   // 禁用颜色
   app_.add_flag(
           "--no-color",
-          [&opts](std::int64_t count) {
+          [&ctx](std::int64_t count) {
             if (count > 0) {
-              opts.global.colorDiagnostics = false;
+              ctx.global().colorDiagnostics = false;
             }
           },
           "Disable colored output")

@@ -12,9 +12,7 @@
 #ifndef CZC_CLI_COMMANDS_VERSION_COMMAND_HPP
 #define CZC_CLI_COMMANDS_VERSION_COMMAND_HPP
 
-#if __cplusplus < 202302L
-#error "C++23 or higher is required"
-#endif
+#include "czc/common/config.hpp"
 
 #include "czc/cli/commands/command.hpp"
 

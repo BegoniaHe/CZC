@@ -20,10 +20,7 @@
 #ifndef CZC_LEXER_TOKEN_HPP
 #define CZC_LEXER_TOKEN_HPP
 
-#if __cplusplus < 202002L
-#error "C++20 or higher is required"
-#endif
-
+#include "czc/common/config.hpp"
 #include "czc/lexer/source_manager.hpp"
 
 #include <bitset>
@@ -513,14 +510,20 @@ private:
   EscapeFlags escapeFlags_; // 1 byte  - 仅字符串 Token 使用
   [[maybe_unused]] std::uint8_t
       padding_[3]{}; // 3 bytes - 显式 padding，预留未来扩展
-      // 用途说明：此字段用于未来在不破坏 ABI 的情况下添加小型字段（如新标志位、状态字节等）。
-      // 若需访问或扩展此区域，请使用下方的 accessor。
+                     // 用途说明：此字段用于未来在不破坏 ABI
+  // 的情况下添加小型字段（如新标志位、状态字节等）。
+  // 若需访问或扩展此区域，请使用下方的 accessor。
 
   /// @brief 访问预留的 padding 字节（仅供未来扩展使用）
   /// @return 指向 padding_ 数组的指针
-  [[nodiscard]] constexpr std::uint8_t* reservedBytes() noexcept { return padding_; }
+  [[nodiscard]] constexpr std::uint8_t *reservedBytes() noexcept {
+    return padding_;
+  }
   /// @brief 只读访问预留的 padding 字节
-  [[nodiscard]] constexpr const std::uint8_t* reservedBytes() const noexcept { return padding_;; }
+  [[nodiscard]] constexpr const std::uint8_t *reservedBytes() const noexcept {
+    return padding_;
+    ;
+  }
   ExpansionID expansionId_; // 4 bytes - 宏展开 ID（预留）
   // 4 bytes implicit padding（对齐到 8 字节边界）
 

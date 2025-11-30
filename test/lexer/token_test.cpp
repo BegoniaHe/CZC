@@ -292,5 +292,120 @@ TEST(TokenTypeNameTest, ReturnsCorrectNames) {
   EXPECT_EQ(tokenTypeName(TokenType::TOKEN_EOF), "TOKEN_EOF");
 }
 
+TEST(TokenTypeNameTest, AllKeywordNames) {
+  EXPECT_EQ(tokenTypeName(TokenType::KW_VAR), "KW_VAR");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_STRUCT), "KW_STRUCT");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_ENUM), "KW_ENUM");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_TYPE), "KW_TYPE");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_IMPL), "KW_IMPL");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_TRAIT), "KW_TRAIT");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_RETURN), "KW_RETURN");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_IF), "KW_IF");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_ELSE), "KW_ELSE");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_WHILE), "KW_WHILE");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_FOR), "KW_FOR");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_IN), "KW_IN");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_BREAK), "KW_BREAK");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_CONTINUE), "KW_CONTINUE");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_MATCH), "KW_MATCH");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_IMPORT), "KW_IMPORT");
+  EXPECT_EQ(tokenTypeName(TokenType::KW_AS), "KW_AS");
+}
+
+TEST(TokenTypeNameTest, AllCommentNames) {
+  EXPECT_EQ(tokenTypeName(TokenType::COMMENT_LINE), "COMMENT_LINE");
+  EXPECT_EQ(tokenTypeName(TokenType::COMMENT_BLOCK), "COMMENT_BLOCK");
+  EXPECT_EQ(tokenTypeName(TokenType::COMMENT_DOC), "COMMENT_DOC");
+}
+
+TEST(TokenTypeNameTest, AllLiteralNames) {
+  EXPECT_EQ(tokenTypeName(TokenType::LIT_FLOAT), "LIT_FLOAT");
+  EXPECT_EQ(tokenTypeName(TokenType::LIT_DECIMAL), "LIT_DECIMAL");
+  EXPECT_EQ(tokenTypeName(TokenType::LIT_RAW_STRING), "LIT_RAW_STRING");
+  EXPECT_EQ(tokenTypeName(TokenType::LIT_TEX_STRING), "LIT_TEX_STRING");
+  EXPECT_EQ(tokenTypeName(TokenType::LIT_TRUE), "LIT_TRUE");
+  EXPECT_EQ(tokenTypeName(TokenType::LIT_FALSE), "LIT_FALSE");
+  EXPECT_EQ(tokenTypeName(TokenType::LIT_NULL), "LIT_NULL");
+}
+
+TEST(TokenTypeNameTest, AllArithmeticOperatorNames) {
+  EXPECT_EQ(tokenTypeName(TokenType::OP_MINUS), "OP_MINUS");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_STAR), "OP_STAR");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_SLASH), "OP_SLASH");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_PERCENT), "OP_PERCENT");
+}
+
+TEST(TokenTypeNameTest, AllComparisonOperatorNames) {
+  EXPECT_EQ(tokenTypeName(TokenType::OP_EQ), "OP_EQ");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_NE), "OP_NE");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_LT), "OP_LT");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_LE), "OP_LE");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_GT), "OP_GT");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_GE), "OP_GE");
+}
+
+TEST(TokenTypeNameTest, AllLogicalOperatorNames) {
+  EXPECT_EQ(tokenTypeName(TokenType::OP_LOGICAL_AND), "OP_LOGICAL_AND");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_LOGICAL_OR), "OP_LOGICAL_OR");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_LOGICAL_NOT), "OP_LOGICAL_NOT");
+}
+
+TEST(TokenTypeNameTest, AllBitwiseOperatorNames) {
+  EXPECT_EQ(tokenTypeName(TokenType::OP_BIT_AND), "OP_BIT_AND");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_BIT_OR), "OP_BIT_OR");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_BIT_XOR), "OP_BIT_XOR");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_BIT_NOT), "OP_BIT_NOT");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_BIT_SHL), "OP_BIT_SHL");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_BIT_SHR), "OP_BIT_SHR");
+}
+
+TEST(TokenTypeNameTest, AllAssignmentOperatorNames) {
+  EXPECT_EQ(tokenTypeName(TokenType::OP_ASSIGN), "OP_ASSIGN");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_PLUS_ASSIGN), "OP_PLUS_ASSIGN");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_MINUS_ASSIGN), "OP_MINUS_ASSIGN");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_STAR_ASSIGN), "OP_STAR_ASSIGN");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_SLASH_ASSIGN), "OP_SLASH_ASSIGN");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_PERCENT_ASSIGN), "OP_PERCENT_ASSIGN");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_AND_ASSIGN), "OP_AND_ASSIGN");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_OR_ASSIGN), "OP_OR_ASSIGN");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_XOR_ASSIGN), "OP_XOR_ASSIGN");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_SHL_ASSIGN), "OP_SHL_ASSIGN");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_SHR_ASSIGN), "OP_SHR_ASSIGN");
+}
+
+TEST(TokenTypeNameTest, AllOtherOperatorNames) {
+  EXPECT_EQ(tokenTypeName(TokenType::OP_DOT_DOT), "OP_DOT_DOT");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_DOT_DOT_EQ), "OP_DOT_DOT_EQ");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_ARROW), "OP_ARROW");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_FAT_ARROW), "OP_FAT_ARROW");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_DOT), "OP_DOT");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_AT), "OP_AT");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_COLON_COLON), "OP_COLON_COLON");
+}
+
+TEST(TokenTypeNameTest, AllDelimiterNames) {
+  EXPECT_EQ(tokenTypeName(TokenType::DELIM_RPAREN), "DELIM_RPAREN");
+  EXPECT_EQ(tokenTypeName(TokenType::DELIM_LBRACE), "DELIM_LBRACE");
+  EXPECT_EQ(tokenTypeName(TokenType::DELIM_RBRACE), "DELIM_RBRACE");
+  EXPECT_EQ(tokenTypeName(TokenType::DELIM_LBRACKET), "DELIM_LBRACKET");
+  EXPECT_EQ(tokenTypeName(TokenType::DELIM_RBRACKET), "DELIM_RBRACKET");
+  EXPECT_EQ(tokenTypeName(TokenType::DELIM_COMMA), "DELIM_COMMA");
+  EXPECT_EQ(tokenTypeName(TokenType::DELIM_COLON), "DELIM_COLON");
+  EXPECT_EQ(tokenTypeName(TokenType::DELIM_SEMICOLON), "DELIM_SEMICOLON");
+  EXPECT_EQ(tokenTypeName(TokenType::DELIM_UNDERSCORE), "DELIM_UNDERSCORE");
+}
+
+TEST(TokenTypeNameTest, AllReservedOperatorNames) {
+  EXPECT_EQ(tokenTypeName(TokenType::OP_HASH), "OP_HASH");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_DOLLAR), "OP_DOLLAR");
+  EXPECT_EQ(tokenTypeName(TokenType::OP_BACKSLASH), "OP_BACKSLASH");
+}
+
+TEST(TokenTypeNameTest, AllSpecialTokenNames) {
+  EXPECT_EQ(tokenTypeName(TokenType::TOKEN_NEWLINE), "TOKEN_NEWLINE");
+  EXPECT_EQ(tokenTypeName(TokenType::TOKEN_WHITESPACE), "TOKEN_WHITESPACE");
+  EXPECT_EQ(tokenTypeName(TokenType::TOKEN_UNKNOWN), "TOKEN_UNKNOWN");
+}
+
 } // namespace
 } // namespace czc::lexer

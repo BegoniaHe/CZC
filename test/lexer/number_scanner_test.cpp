@@ -6,8 +6,8 @@
  * @date 2025-11-30
  */
 
-#include "czc/lexer/number_scanner.hpp"
 #include "czc/lexer/lexer_error.hpp"
+#include "czc/lexer/number_scanner.hpp"
 #include "czc/lexer/source_manager.hpp"
 #include "czc/lexer/source_reader.hpp"
 

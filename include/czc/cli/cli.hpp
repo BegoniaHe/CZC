@@ -11,17 +11,21 @@
  *   - 注册子命令
  *   - 设置全局选项
  *   - 协调命令执行
+ *
+ *   架构说明：
+ *   - Cli: 门面类，处理 CLI11 解析
+ *   - Driver: 编译驱动，管理上下文
+ *   - Command: 命令接口，处理子命令逻辑
+ *   - Phase: 编译阶段，执行实际编译工作
  */
 
 #ifndef CZC_CLI_CLI_HPP
 #define CZC_CLI_CLI_HPP
 
-#if __cplusplus < 202302L
-#error "C++23 or higher is required"
-#endif
+#include "czc/common/config.hpp"
 
 #include "czc/cli/commands/command.hpp"
-#include "czc/cli/options.hpp"
+#include "czc/cli/driver.hpp"
 #include "czc/common/result.hpp"
 
 #include <CLI/CLI.hpp>
@@ -30,9 +34,6 @@
 #include <vector>
 
 namespace czc::cli {
-
-/// 版本号常量
-inline constexpr std::string_view kVersion = "0.0.1";
 
 /// 程序名称
 inline constexpr std::string_view kProgramName = "czc";
@@ -49,11 +50,13 @@ inline constexpr std::string_view kProgramDescription =
  *   - 解析命令行参数
  *   - 分发到对应子命令执行
  *   - 统一错误处理和输出
+ *
+ *   使用 Driver 管理编译上下文，避免全局状态。
  */
 class Cli {
 public:
   /**
-   * @brief 构造函数，初始化 CLI11 应用。
+   * @brief 构造函数，初始化 CLI11 应用和 Driver。
    */
   Cli();
 
@@ -84,8 +87,16 @@ public:
    */
   [[nodiscard]] CLI::App &app() noexcept { return app_; }
 
+  /**
+   * @brief 获取 Driver 引用。
+   *
+   * @return Driver 引用
+   */
+  [[nodiscard]] Driver &driver() noexcept { return driver_; }
+
 private:
   CLI::App app_;                                   ///< CLI11 应用实例
+  Driver driver_;                                  ///< 编译驱动器
   std::vector<std::unique_ptr<Command>> commands_; ///< 已注册的命令列表
   Command *activeCommand_{nullptr};                ///< 当前激活的命令
 
@@ -107,11 +118,29 @@ private:
   [[nodiscard]] VoidResult loadConfig();
 
   /**
-   * @brief 注册单个命令。
+   * @brief 注册需要 Driver 的命令。
    *
-   * @tparam T 命令类型
+   * @tparam T 命令类型（构造函数接受 Driver& 参数）
    */
-  template <typename T> void registerCommand() {
+  template <typename T> void registerCommandWithDriver() {
+    auto cmd = std::make_unique<T>(driver_);
+    auto *sub = app_.add_subcommand(std::string(cmd->name()),
+                                    std::string(cmd->description()));
+    cmd->setup(sub);
+
+    // 设置回调，记录激活的命令
+    Command *raw_ptr = cmd.get();
+    sub->callback([this, raw_ptr]() { activeCommand_ = raw_ptr; });
+
+    commands_.push_back(std::move(cmd));
+  }
+
+  /**
+   * @brief 注册不需要 Driver 的简单命令。
+   *
+   * @tparam T 命令类型（默认构造）
+   */
+  template <typename T> void registerSimpleCommand() {
     auto cmd = std::make_unique<T>();
     auto *sub = app_.add_subcommand(std::string(cmd->name()),
                                     std::string(cmd->description()));

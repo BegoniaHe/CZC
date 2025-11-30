@@ -83,7 +83,7 @@ SourceReader::sliceFrom(std::size_t startOffset) const noexcept {
 
   if (position_ >= startOffset) {
     std::size_t len = position_ - startOffset;
-    // 限制为 uint16_t 最大值
+    // 截断为 uint16_t 最大值
     slice.length = static_cast<std::uint16_t>(len > 0xFFFF ? 0xFFFF : len);
   } else {
     slice.length = 0;

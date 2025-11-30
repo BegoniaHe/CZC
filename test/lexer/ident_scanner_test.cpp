@@ -78,9 +78,7 @@ TEST_F(IdentScannerTest, CanScanUnicodeStart) {
   EXPECT_TRUE(canScan("αβγ"));
 }
 
-TEST_F(IdentScannerTest, CannotScanEmpty) {
-  EXPECT_FALSE(canScan(""));
-}
+TEST_F(IdentScannerTest, CannotScanEmpty) { EXPECT_FALSE(canScan("")); }
 
 // ============================================================================
 // 基本标识符扫描测试

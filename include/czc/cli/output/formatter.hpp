@@ -12,11 +12,9 @@
 #ifndef CZC_CLI_OUTPUT_FORMATTER_HPP
 #define CZC_CLI_OUTPUT_FORMATTER_HPP
 
-#if __cplusplus < 202302L
-#error "C++23 or higher is required"
-#endif
+#include "czc/common/config.hpp"
 
-#include "czc/cli/options.hpp"
+#include "czc/cli/context.hpp"
 #include "czc/lexer/lexer_error.hpp"
 #include "czc/lexer/source_manager.hpp"
 #include "czc/lexer/token.hpp"

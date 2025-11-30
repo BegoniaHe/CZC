@@ -602,7 +602,8 @@ coverage:
 	@$(CMAKE) --build $(BUILD_DIR) --parallel $(NPROC)
 	@echo ""
 	@printf "$(COLOR_CYAN)Running tests with coverage...\n$(COLOR_RESET)"
-	@cd $(BUILD_DIR) && LLVM_PROFILE_FILE="$(PWD)/$(BUILD_DIR)/default.profraw" $(CTEST) --output-on-failure --parallel $(NPROC)
+	@rm -f $(BUILD_DIR)/*.profraw
+	@LLVM_PROFILE_FILE="$(PWD)/$(BUILD_DIR)/default.profraw" $(BUILD_DIR)/lexer_tests
 	@echo ""
 	@printf "$(COLOR_GREEN)$(COLOR_BOLD)===================================\n$(COLOR_RESET)"
 	@printf "$(COLOR_GREEN)$(COLOR_BOLD)Coverage build completed!\n$(COLOR_RESET)"
@@ -624,9 +625,9 @@ coverage-report:
 		if [ -n "$$PROFRAW" ]; then \
 			printf "$(COLOR_CYAN)Found profraw: $$PROFRAW\n$(COLOR_RESET)"; \
 			llvm-profdata merge -sparse $$PROFRAW -o $(BUILD_DIR)/coverage.profdata; \
-			TEST_BIN=$$(find $(BUILD_DIR) -name "lexer_tests" -type f -perm +111 2>/dev/null | head -1); \
+			TEST_BIN=$$(find $(BUILD_DIR) -name "lexer_tests" -type f -executable 2>/dev/null | head -1); \
 			if [ -z "$$TEST_BIN" ]; then \
-				TEST_BIN=$$(find $(BUILD_DIR) -name "*_tests" -type f -perm +111 2>/dev/null | head -1); \
+				TEST_BIN=$$(find $(BUILD_DIR) -name "*_tests" -type f -executable 2>/dev/null | head -1); \
 			fi; \
 			if [ -n "$$TEST_BIN" ]; then \
 				printf "$(COLOR_CYAN)Using test binary: $$TEST_BIN\n$(COLOR_RESET)"; \

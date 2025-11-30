@@ -17,7 +17,6 @@ std::string TextFormatter::formatTokens(std::span<const lexer::Token> tokens,
                                         const lexer::SourceManager &sm) const {
   std::ostringstream oss;
 
-  oss << "=== Lexical Analysis Result ===\n";
   oss << "Total tokens: " << tokens.size() << "\n\n";
 
   for (const auto &token : tokens) {

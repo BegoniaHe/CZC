@@ -114,7 +114,8 @@ target_link_libraries(czc_lexer PUBLIC ICU::uc)
 # ============================================================================
 set(CLI_SOURCES
     src/cli/cli.cpp
-    src/cli/options.cpp
+    src/cli/driver.cpp
+    src/cli/phases/lexer_phase.cpp
     src/cli/output/text_formatter.cpp
     src/cli/output/json_formatter.cpp
     src/cli/commands/lex_command.cpp

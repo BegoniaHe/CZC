@@ -258,19 +258,19 @@ Token Lexer::scanToken() {
 
   // 按优先级尝试各个 scanner
 
-  // 1. 标识符（包括关键字）
+  // 1. 字符串字面量
+  if (stringScanner_.canScan(ctx)) {
+    return stringScanner_.scan(ctx);
+  }
+
+  // 2. 标识符
   if (identScanner_.canScan(ctx)) {
     return identScanner_.scan(ctx);
   }
 
-  // 2. 数字字面量
+  // 3. 数字字面量
   if (numberScanner_.canScan(ctx)) {
     return numberScanner_.scan(ctx);
-  }
-
-  // 3. 字符串字面量
-  if (stringScanner_.canScan(ctx)) {
-    return stringScanner_.scan(ctx);
   }
 
   // 4. 运算符和分隔符

@@ -18,9 +18,7 @@
 #ifndef CZC_LEXER_LEXER_ERROR_HPP
 #define CZC_LEXER_LEXER_ERROR_HPP
 
-#if __cplusplus < 202002L
-#error "C++20 or higher is required"
-#endif
+#include "czc/common/config.hpp"
 
 #include "czc/lexer/token.hpp"
 
@@ -92,6 +90,11 @@ enum class LexerErrorCode : std::uint16_t {
 
   /// 块注释未闭合
   UnterminatedBlockComment = 1031,
+
+  // ========== 通用错误 (1041-1050) ==========
+
+  /// Token 长度超过限制（65535 字节）
+  TokenTooLong = 1041,
 };
 
 /**

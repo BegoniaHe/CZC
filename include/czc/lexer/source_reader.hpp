@@ -17,9 +17,7 @@
 #ifndef CZC_LEXER_SOURCE_READER_HPP
 #define CZC_LEXER_SOURCE_READER_HPP
 
-#if __cplusplus < 202002L
-#error "C++20 or higher is required"
-#endif
+#include "czc/common/config.hpp"
 
 #include "czc/lexer/source_manager.hpp"
 #include "czc/lexer/token.hpp"

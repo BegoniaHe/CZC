@@ -18,7 +18,7 @@ void VersionCommand::setup([[maybe_unused]] CLI::App *app) {
 }
 
 Result<int> VersionCommand::execute() {
-  std::cout << kProgramName << " version " << kVersion << "\n";
+  std::cout << kProgramName << " version " << kVersion.string << "\n";
   std::cout << "Built with C++23\n";
 
   // 编译器信息

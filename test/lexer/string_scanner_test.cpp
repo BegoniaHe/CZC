@@ -6,10 +6,10 @@
  * @date 2025-11-30
  */
 
-#include "czc/lexer/string_scanner.hpp"
 #include "czc/lexer/lexer_error.hpp"
 #include "czc/lexer/source_manager.hpp"
 #include "czc/lexer/source_reader.hpp"
+#include "czc/lexer/string_scanner.hpp"
 
 #include <gtest/gtest.h>
 
@@ -277,13 +277,12 @@ TEST_F(StringScannerTest, StringStopsAtClosingQuote) {
 }
 
 TEST_F(StringScannerTest, MultiLineString) {
-  // 当前实现不支持普通字符串内的换行符，会在换行处报错并终止
-  // 如需多行字符串，应使用原始字符串 r"..." 或 r#"..."#
-  auto [tok, hasErrors] = scanWithErrors("\"line1\nline2\"");
+  // 普通字符串支持换行（多行字符串）
+  auto tok = scan("\"line1\nline2\"");
 
-  // 期望报错（未闭合字符串）
-  EXPECT_TRUE(hasErrors);
+  // 期望成功解析
   EXPECT_EQ(tok.type(), TokenType::LIT_STRING);
+  EXPECT_EQ(tok.value(sm_), "\"line1\nline2\"");
 }
 
 // ============================================================================
@@ -408,10 +407,11 @@ TEST_F(StringScannerTest, TexStringInvalidNoQuote) {
 // ============================================================================
 
 TEST_F(StringScannerTest, StringWithCarriageReturn) {
-  auto [tok, hasErrors] = scanWithErrors("\"line1\rline2\"");
+  // 普通字符串支持回车符
+  auto tok = scan("\"line1\rline2\"");
 
-  EXPECT_TRUE(hasErrors);
   EXPECT_EQ(tok.type(), TokenType::LIT_STRING);
+  EXPECT_EQ(tok.value(sm_), "\"line1\rline2\"");
 }
 
 // ============================================================================

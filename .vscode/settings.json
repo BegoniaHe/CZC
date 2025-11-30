@@ -23,6 +23,18 @@
         "string_view": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "iostream": "cpp",
+        "sstream": "cpp",
+        "span": "cpp",
+        "functional": "cpp",
+        "expected": "cpp",
+        "utility": "cpp",
+        "filesystem": "cpp",
+        "fstream": "cpp",
+        "format": "cpp",
+        "source_location": "cpp",
+        "concepts": "cpp",
+        "bitset": "cpp"
     }
 }

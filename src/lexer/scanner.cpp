@@ -91,6 +91,18 @@ bool ScanContext::hasErrors() const noexcept { return errors_.hasErrors(); }
 Token ScanContext::makeToken(TokenType type, std::size_t startOffset,
                              SourceLocation startLoc) const {
   auto slice = reader_.sliceFrom(startOffset);
+
+  // 检测超长 Token（超过 uint16_t 最大值 65535 字节）
+  constexpr std::size_t kMaxTokenLength = 0xFFFF;
+  std::size_t actualLength = reader_.offset() - startOffset;
+  if (actualLength > kMaxTokenLength) {
+    // 报告错误，但仍然创建一个截断的 Token 以便继续解析
+    const_cast<ScanContext *>(this)->reportError(
+        LexerError::make(LexerErrorCode::TokenTooLong, startLoc,
+                         "token length {} exceeds maximum allowed length {}",
+                         actualLength, kMaxTokenLength));
+  }
+
   return Token(type, buffer(), slice.offset, slice.length, startLoc);
 }
 

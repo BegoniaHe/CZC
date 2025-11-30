@@ -138,9 +138,7 @@ TEST_F(EncodeCodepointTest, InvalidCodepoint) {
 
 class IsValidUtf8Test : public ::testing::Test {};
 
-TEST_F(IsValidUtf8Test, EmptyString) {
-  EXPECT_TRUE(isValidUtf8(""));
-}
+TEST_F(IsValidUtf8Test, EmptyString) { EXPECT_TRUE(isValidUtf8("")); }
 
 TEST_F(IsValidUtf8Test, AsciiString) {
   EXPECT_TRUE(isValidUtf8("Hello, World!"));
@@ -406,12 +404,10 @@ class IdentCharTest : public ::testing::Test {};
 
 TEST_F(IdentCharTest, AsciiLettersAreIdentStart) {
   for (char c = 'a'; c <= 'z'; ++c) {
-    EXPECT_TRUE(isIdentStart(static_cast<char32_t>(c)))
-        << "Failed for: " << c;
+    EXPECT_TRUE(isIdentStart(static_cast<char32_t>(c))) << "Failed for: " << c;
   }
   for (char c = 'A'; c <= 'Z'; ++c) {
-    EXPECT_TRUE(isIdentStart(static_cast<char32_t>(c)))
-        << "Failed for: " << c;
+    EXPECT_TRUE(isIdentStart(static_cast<char32_t>(c))) << "Failed for: " << c;
   }
 }
 
@@ -421,8 +417,7 @@ TEST_F(IdentCharTest, UnderscoreIsIdentStart) {
 
 TEST_F(IdentCharTest, DigitsNotIdentStart) {
   for (char c = '0'; c <= '9'; ++c) {
-    EXPECT_FALSE(isIdentStart(static_cast<char32_t>(c)))
-        << "Failed for: " << c;
+    EXPECT_FALSE(isIdentStart(static_cast<char32_t>(c))) << "Failed for: " << c;
   }
 }
 
