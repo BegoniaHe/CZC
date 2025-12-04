@@ -155,43 +155,110 @@ endif()
 # ============================================================================
 enable_testing()
 
-# Lexer 测试
-set(LEXER_TEST_SOURCES
-    test/lexer/source_manager_test.cpp
-    test/lexer/source_reader_test.cpp
-    test/lexer/token_test.cpp
-    test/lexer/lexer_test.cpp
-    test/lexer/ident_scanner_test.cpp
-    test/lexer/number_scanner_test.cpp
-    test/lexer/string_scanner_test.cpp
-    test/lexer/comment_scanner_test.cpp
-    test/lexer/char_scanner_test.cpp
-    test/lexer/utf8_test.cpp
-    test/lexer/lexer_error_test.cpp
-    test/lexer/scanner_test.cpp
+# ============================================================================
+# Lexer 单元测试
+# ============================================================================
+set(LEXER_UNITTEST_SOURCES
+    tests/lexer/unittest/source_manager_test.cpp
+    tests/lexer/unittest/source_reader_test.cpp
+    tests/lexer/unittest/token_test.cpp
+    tests/lexer/unittest/lexer_test.cpp
+    tests/lexer/unittest/ident_scanner_test.cpp
+    tests/lexer/unittest/number_scanner_test.cpp
+    tests/lexer/unittest/string_scanner_test.cpp
+    tests/lexer/unittest/comment_scanner_test.cpp
+    tests/lexer/unittest/char_scanner_test.cpp
+    tests/lexer/unittest/utf8_test.cpp
+    tests/lexer/unittest/lexer_error_test.cpp
+    tests/lexer/unittest/scanner_test.cpp
 )
 
 # 覆盖率模式下直接编译源文件到测试中
 if(ENABLE_COVERAGE)
-    add_executable(lexer_tests ${LEXER_TEST_SOURCES} ${LEXER_SOURCES})
-    target_include_directories(lexer_tests PRIVATE ${CMAKE_SOURCE_DIR}/include)
-    target_link_libraries(lexer_tests 
+    add_executable(lexer_unittest ${LEXER_UNITTEST_SOURCES} ${LEXER_SOURCES})
+    target_include_directories(lexer_unittest PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    target_link_libraries(lexer_unittest 
         PRIVATE GTest::gtest_main
         PRIVATE ICU::uc
     )
 else()
-    add_executable(lexer_tests ${LEXER_TEST_SOURCES})
-    target_link_libraries(lexer_tests 
+    add_executable(lexer_unittest ${LEXER_UNITTEST_SOURCES})
+    target_link_libraries(lexer_unittest 
         PRIVATE czc_lexer
         PRIVATE GTest::gtest_main
     )
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    target_compile_options(lexer_tests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(lexer_unittest PRIVATE -Wall -Wextra -Wpedantic)
 elseif(MSVC)
-    target_compile_options(lexer_tests PRIVATE /W4)
+    target_compile_options(lexer_unittest PRIVATE /W4)
 endif()
 
 include(GoogleTest)
-gtest_discover_tests(lexer_tests)
+gtest_discover_tests(lexer_unittest)
+
+# ============================================================================
+# Lexer 集成测试
+# ============================================================================
+set(LEXER_INTEGRATION_TEST_SOURCES
+    tests/lexer/lexer_integration_test.cpp
+)
+
+add_executable(lexer_integration_tests ${LEXER_INTEGRATION_TEST_SOURCES})
+target_link_libraries(lexer_integration_tests 
+    PRIVATE czc_cli
+    PRIVATE GTest::gtest_main
+)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    target_compile_options(lexer_integration_tests PRIVATE -Wall -Wextra -Wpedantic)
+elseif(MSVC)
+    target_compile_options(lexer_integration_tests PRIVATE /W4)
+endif()
+
+gtest_discover_tests(lexer_integration_tests)
+
+# ============================================================================
+# CLI 单元测试
+# ============================================================================
+set(CLI_UNITTEST_SOURCES
+    tests/cli/unittest/context_test.cpp
+    tests/cli/unittest/driver_test.cpp
+    tests/cli/unittest/formatter_test.cpp
+)
+
+add_executable(cli_unittest ${CLI_UNITTEST_SOURCES})
+target_link_libraries(cli_unittest 
+    PRIVATE czc_cli
+    PRIVATE GTest::gtest_main
+)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    target_compile_options(cli_unittest PRIVATE -Wall -Wextra -Wpedantic)
+elseif(MSVC)
+    target_compile_options(cli_unittest PRIVATE /W4)
+endif()
+
+gtest_discover_tests(cli_unittest)
+
+# ============================================================================
+# CLI 集成测试
+# ============================================================================
+set(CLI_INTEGRATION_TEST_SOURCES
+    tests/cli/cli_integration_test.cpp
+)
+
+add_executable(cli_integration_tests ${CLI_INTEGRATION_TEST_SOURCES})
+target_link_libraries(cli_integration_tests 
+    PRIVATE czc_cli
+    PRIVATE GTest::gtest_main
+)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    target_compile_options(cli_integration_tests PRIVATE -Wall -Wextra -Wpedantic)
+elseif(MSVC)
+    target_compile_options(cli_integration_tests PRIVATE /W4)
+endif()
+
+gtest_discover_tests(cli_integration_tests)

@@ -72,7 +72,7 @@ public:
 
   // 可移动
   LexerPhase(LexerPhase &&) noexcept = default;
-  LexerPhase &operator=(LexerPhase &&) noexcept = default;
+  LexerPhase &operator=(LexerPhase &&) noexcept = delete;
 
   /**
    * @brief 对文件执行词法分析。

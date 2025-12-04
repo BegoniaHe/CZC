@@ -57,8 +57,16 @@ struct BufferID {
  * @details
  *   ExpansionID 用于追踪 Token 是否来自宏展开，以及展开链信息。
  *   当前版本不实现宏系统，但预留此接口以便未来扩展。
+ *
+ * @note 此结构体当前未被使用，仅作为未来宏系统的设计预留。
+ *       实际实现宏系统时，此结构体将用于：
+ *       1. 追踪 Token 的原始位置
+ *       2. 追踪 Token 的展开位置
+ *       3. 支持嵌套宏展开链的追踪
+ *
+ * @todo 在实现宏系统时完善此结构体的功能。
  */
-struct ExpansionID {
+struct [[maybe_unused]] ExpansionID {
   std::uint32_t value{0};
 
   /// 检查 ExpansionID 是否相等

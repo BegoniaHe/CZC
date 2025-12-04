@@ -135,9 +135,16 @@ public:
    */
   void printDiagnosticSummary() const;
 
+  /**
+   * @brief 设置错误输出流。
+   *
+   * @param stream 输出流引用
+   */
+  void setErrorStream(std::ostream &stream) noexcept { errStream_ = &stream; }
+
 private:
   CompilerContext ctx_;
-  std::ostream *errStream_{&std::cerr};
+  std::ostream *errStream_{&std::cerr}; ///< 错误输出流（默认 stderr）
 
   /**
    * @brief 默认诊断打印器。

@@ -10,7 +10,7 @@
  *   - Scanner concept: 扫描器接口约束
  *   - ScanContext: 扫描上下文，为扫描器提供统一的访问接口
  *
- *   采用 C++20 concepts 定义扫描器接口，提供编译期类型检查。
+ *   采用 concepts 定义扫描器接口，提供编译期类型检查。
  */
 
 #ifndef CZC_LEXER_SCANNER_HPP
