@@ -288,7 +288,8 @@ Token Lexer::scanUnknown(ScanContext &ctx) {
 
   auto ch = ctx.current();
   if (ch.has_value()) {
-    errors_.add(LexerError::make(LexerErrorCode::InvalidCharacter, startLoc,
+    // 单个无效字符，长度为 1
+    errors_.add(LexerError::make(LexerErrorCode::InvalidCharacter, startLoc, 1,
                                  "invalid character '{}'", ch.value()));
     ctx.advance();
   }

@@ -9,27 +9,17 @@
 #include "czc/cli/driver.hpp"
 #include "czc/cli/output/formatter.hpp"
 #include "czc/cli/phases/lexer_phase.hpp"
+#include "czc/diag/diag_builder.hpp"
+#include "czc/diag/message.hpp"
 
 #include <fstream>
 #include <iostream>
 
 namespace czc::cli {
 
-Driver::Driver() {
-  // 设置默认诊断处理器
-  ctx_.diagnostics().setHandler(
-      [this](const Diagnostic &diag) { defaultDiagnosticPrinter(diag); });
-}
+Driver::Driver() = default;
 
-Driver::Driver(CompilerContext ctx) : ctx_(std::move(ctx)) {
-  // 设置默认诊断处理器
-  ctx_.diagnostics().setHandler(
-      [this](const Diagnostic &diag) { defaultDiagnosticPrinter(diag); });
-}
-
-void Driver::setDiagnosticPrinter(DiagnosticPrinter printer) {
-  ctx_.diagnostics().setHandler(std::move(printer));
-}
+Driver::Driver(CompilerContext ctx) : ctx_(std::move(ctx)) {}
 
 int Driver::runLexer(const std::filesystem::path &inputFile) {
   // 创建词法分析阶段
@@ -40,7 +30,8 @@ int Driver::runLexer(const std::filesystem::path &inputFile) {
 
   if (!result.has_value()) {
     // 报告错误
-    ctx_.diagnostics().error(result.error().message, result.error().code);
+    diagContext().emit(
+        diag::error(diag::Message(result.error().message)).build());
     return 1;
   }
 
@@ -62,9 +53,10 @@ int Driver::runLexer(const std::filesystem::path &inputFile) {
   if (ctx_.output().file.has_value()) {
     std::ofstream ofs(ctx_.output().file.value());
     if (!ofs) {
-      ctx_.diagnostics().error("Failed to open output file: " +
-                                   ctx_.output().file.value().string(),
-                               "E010");
+      diagContext().emit(
+          diag::error(diag::Message("Failed to open output file: " +
+                                    ctx_.output().file.value().string()))
+              .build());
       return 1;
     }
     ofs << output;
@@ -75,55 +67,9 @@ int Driver::runLexer(const std::filesystem::path &inputFile) {
   return 0;
 }
 
-void Driver::printDiagnosticSummary() const {
-  const auto &diag = ctx_.diagnostics();
-
-  if (diag.errorCount() > 0 || diag.warningCount() > 0) {
-    *errStream_ << "\n";
-    if (diag.errorCount() > 0) {
-      *errStream_ << diag.errorCount() << " error(s)";
-      if (diag.warningCount() > 0) {
-        *errStream_ << ", ";
-      }
-    }
-    if (diag.warningCount() > 0) {
-      *errStream_ << diag.warningCount() << " warning(s)";
-    }
-    *errStream_ << " generated.\n";
-  }
-}
-
-void Driver::defaultDiagnosticPrinter(const Diagnostic &diag) const {
-  // 只有非静默模式才输出
-  if (ctx_.isQuiet() && diag.level == DiagnosticLevel::Note) {
-    return;
-  }
-
-  // 颜色输出（如果启用）
-  const bool useColor = ctx_.global().colorDiagnostics;
-
-  if (useColor) {
-    switch (diag.level) {
-    case DiagnosticLevel::Note:
-      *errStream_ << "\033[36m"; // Cyan
-      break;
-    case DiagnosticLevel::Warning:
-      *errStream_ << "\033[33m"; // Yellow
-      break;
-    case DiagnosticLevel::Error:
-    case DiagnosticLevel::Fatal:
-      *errStream_ << "\033[31m"; // Red
-      break;
-    }
-  }
-
-  *errStream_ << diag.format();
-
-  if (useColor) {
-    *errStream_ << "\033[0m"; // Reset
-  }
-
-  *errStream_ << "\n";
+void Driver::printDiagnosticSummary() {
+  // 使用诊断系统的 emitSummary 方法输出统计信息
+  ctx_.diagContext().emitSummary();
 }
 
 } // namespace czc::cli

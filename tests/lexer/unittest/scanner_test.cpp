@@ -248,8 +248,8 @@ TEST_F(ScanContextTest, ReportError) {
 
   EXPECT_FALSE(ctx.hasErrors());
 
-  ctx.reportError(LexerError::make(LexerErrorCode::InvalidCharacter,
-                                   ctx.location(), "test error"));
+  ctx.reportError(LexerError::simple(LexerErrorCode::InvalidCharacter,
+                                     ctx.location(), "test error"));
 
   EXPECT_TRUE(ctx.hasErrors());
   EXPECT_EQ(errors_.count(), 1u);

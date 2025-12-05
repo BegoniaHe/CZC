@@ -97,8 +97,11 @@ Token ScanContext::makeToken(TokenType type, std::size_t startOffset,
   std::size_t actualLength = reader_.offset() - startOffset;
   if (actualLength > kMaxTokenLength) {
     // 报告错误，但仍然创建一个截断的 Token 以便继续解析
+    // 使用实际长度作为 span 长度（截断到 uint32_t 范围）
+    uint32_t spanLength = static_cast<uint32_t>(
+        std::min(actualLength, static_cast<std::size_t>(UINT32_MAX)));
     const_cast<ScanContext *>(this)->reportError(
-        LexerError::make(LexerErrorCode::TokenTooLong, startLoc,
+        LexerError::make(LexerErrorCode::TokenTooLong, startLoc, spanLength,
                          "token length {} exceeds maximum allowed length {}",
                          actualLength, kMaxTokenLength));
   }

@@ -29,7 +29,7 @@ protected:
 
 TEST_F(LexerErrorTest, MakeError) {
   SourceLocation loc(BufferID{1}, 5, 3, 10);
-  auto error = LexerError::make(LexerErrorCode::InvalidCharacter, loc,
+  auto error = LexerError::make(LexerErrorCode::InvalidCharacter, loc, 1,
                                 "invalid character '@'");
 
   EXPECT_EQ(error.code, LexerErrorCode::InvalidCharacter);
@@ -37,54 +37,68 @@ TEST_F(LexerErrorTest, MakeError) {
   EXPECT_EQ(error.location.offset, 10u);
   EXPECT_EQ(error.location.line, 5u);
   EXPECT_EQ(error.location.column, 3u);
+  EXPECT_EQ(error.length, 1u);
   EXPECT_EQ(error.formattedMessage, "invalid character '@'");
+}
+
+TEST_F(LexerErrorTest, MakeErrorWithLength) {
+  SourceLocation loc(BufferID{1}, 1, 1, 0);
+  auto error = LexerError::make(LexerErrorCode::UnterminatedString, loc, 14,
+                                "unterminated string literal");
+
+  EXPECT_EQ(error.code, LexerErrorCode::UnterminatedString);
+  EXPECT_EQ(error.length, 14u);
+  EXPECT_EQ(error.formattedMessage, "unterminated string literal");
 }
 
 TEST_F(LexerErrorTest, ErrorCodeString) {
   SourceLocation loc(BufferID{1}, 1, 1, 0);
 
-  auto error1 = LexerError::make(LexerErrorCode::InvalidCharacter, loc, "test");
+  auto error1 =
+      LexerError::simple(LexerErrorCode::InvalidCharacter, loc, "test");
   EXPECT_EQ(error1.codeString(), "L1021");
 
   auto error2 =
-      LexerError::make(LexerErrorCode::InvalidNumberSuffix, loc, "test");
+      LexerError::simple(LexerErrorCode::InvalidNumberSuffix, loc, "test");
   EXPECT_EQ(error2.codeString(), "L1006");
 
   auto error3 =
-      LexerError::make(LexerErrorCode::UnterminatedString, loc, "test");
+      LexerError::simple(LexerErrorCode::UnterminatedString, loc, "test");
   EXPECT_EQ(error3.codeString(), "L1012");
 
   auto error4 =
-      LexerError::make(LexerErrorCode::UnterminatedBlockComment, loc, "test");
+      LexerError::simple(LexerErrorCode::UnterminatedBlockComment, loc, "test");
   EXPECT_EQ(error4.codeString(), "L1031");
 
   auto error5 =
-      LexerError::make(LexerErrorCode::InvalidEscapeSequence, loc, "test");
+      LexerError::simple(LexerErrorCode::InvalidEscapeSequence, loc, "test");
   EXPECT_EQ(error5.codeString(), "L1011");
 
   auto error6 =
-      LexerError::make(LexerErrorCode::InvalidUnicodeEscape, loc, "test");
+      LexerError::simple(LexerErrorCode::InvalidUnicodeEscape, loc, "test");
   EXPECT_EQ(error6.codeString(), "L1014");
 
   auto error7 =
-      LexerError::make(LexerErrorCode::InvalidUtf8Sequence, loc, "test");
+      LexerError::simple(LexerErrorCode::InvalidUtf8Sequence, loc, "test");
   EXPECT_EQ(error7.codeString(), "L1022");
 
-  auto error8 = LexerError::make(LexerErrorCode::MissingHexDigits, loc, "test");
+  auto error8 =
+      LexerError::simple(LexerErrorCode::MissingHexDigits, loc, "test");
   EXPECT_EQ(error8.codeString(), "L1001");
 
   auto error9 =
-      LexerError::make(LexerErrorCode::MissingBinaryDigits, loc, "test");
+      LexerError::simple(LexerErrorCode::MissingBinaryDigits, loc, "test");
   EXPECT_EQ(error9.codeString(), "L1002");
 
   auto error10 =
-      LexerError::make(LexerErrorCode::MissingOctalDigits, loc, "test");
+      LexerError::simple(LexerErrorCode::MissingOctalDigits, loc, "test");
   EXPECT_EQ(error10.codeString(), "L1003");
 }
 
 TEST_F(LexerErrorTest, UnknownErrorCode) {
   SourceLocation loc(BufferID{1}, 1, 1, 0);
-  auto error = LexerError::make(static_cast<LexerErrorCode>(9999), loc, "test");
+  auto error =
+      LexerError::simple(static_cast<LexerErrorCode>(9999), loc, "test");
   // 实现直接使用错误码数值
   EXPECT_EQ(error.codeString(), "L9999");
 }
@@ -96,7 +110,7 @@ TEST_F(LexerErrorTest, UnknownErrorCode) {
 TEST_F(LexerErrorTest, FormatErrorWithValidBuffer) {
   auto id = addSource("let x = 1;", "main.czc");
   SourceLocation loc(id, 1, 5, 4);
-  auto error = LexerError::make(LexerErrorCode::InvalidCharacter, loc,
+  auto error = LexerError::make(LexerErrorCode::InvalidCharacter, loc, 1,
                                 "unexpected character");
 
   std::string formatted = formatError(error, sm_);
@@ -109,7 +123,8 @@ TEST_F(LexerErrorTest, FormatErrorWithValidBuffer) {
 
 TEST_F(LexerErrorTest, FormatErrorWithInvalidBuffer) {
   SourceLocation loc(BufferID{999}, 1, 1, 0);
-  auto error = LexerError::make(LexerErrorCode::InvalidCharacter, loc, "test");
+  auto error =
+      LexerError::simple(LexerErrorCode::InvalidCharacter, loc, "test");
 
   std::string formatted = formatError(error, sm_);
   EXPECT_TRUE(formatted.find("<unknown>") != std::string::npos);
@@ -131,7 +146,7 @@ TEST_F(LexerErrorTest, ErrorCollectorAddError) {
   SourceLocation loc(BufferID{1}, 1, 1, 0);
 
   collector.add(
-      LexerError::make(LexerErrorCode::InvalidCharacter, loc, "error1"));
+      LexerError::simple(LexerErrorCode::InvalidCharacter, loc, "error1"));
   EXPECT_TRUE(collector.hasErrors());
   EXPECT_EQ(collector.count(), 1u);
 }
@@ -141,11 +156,11 @@ TEST_F(LexerErrorTest, ErrorCollectorAddMultipleErrors) {
   SourceLocation loc(BufferID{1}, 1, 1, 0);
 
   collector.add(
-      LexerError::make(LexerErrorCode::InvalidCharacter, loc, "error1"));
+      LexerError::simple(LexerErrorCode::InvalidCharacter, loc, "error1"));
   collector.add(
-      LexerError::make(LexerErrorCode::InvalidNumberSuffix, loc, "error2"));
+      LexerError::simple(LexerErrorCode::InvalidNumberSuffix, loc, "error2"));
   collector.add(
-      LexerError::make(LexerErrorCode::UnterminatedString, loc, "error3"));
+      LexerError::simple(LexerErrorCode::UnterminatedString, loc, "error3"));
 
   EXPECT_EQ(collector.count(), 3u);
 
@@ -160,9 +175,9 @@ TEST_F(LexerErrorTest, ErrorCollectorClear) {
   SourceLocation loc(BufferID{1}, 1, 1, 0);
 
   collector.add(
-      LexerError::make(LexerErrorCode::InvalidCharacter, loc, "error1"));
+      LexerError::simple(LexerErrorCode::InvalidCharacter, loc, "error1"));
   collector.add(
-      LexerError::make(LexerErrorCode::InvalidNumberSuffix, loc, "error2"));
+      LexerError::simple(LexerErrorCode::InvalidNumberSuffix, loc, "error2"));
 
   EXPECT_EQ(collector.count(), 2u);
 
@@ -177,7 +192,8 @@ TEST_F(LexerErrorTest, ErrorCollectorClear) {
 
 TEST_F(LexerErrorTest, GetExpansionChainReturnsEmpty) {
   SourceLocation loc(BufferID{1}, 1, 1, 0);
-  auto error = LexerError::make(LexerErrorCode::InvalidCharacter, loc, "test");
+  auto error =
+      LexerError::simple(LexerErrorCode::InvalidCharacter, loc, "test");
 
   auto chain = getExpansionChain(error, sm_);
   EXPECT_TRUE(chain.empty());

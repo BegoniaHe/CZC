@@ -34,7 +34,7 @@ PROJECT_VERSION  := 0.0.1
 BUILD_DIR        := build
 SRC_DIRS         := src
 INCLUDE_DIRS     := include
-TEST_DIRS        := test
+TEST_DIRS        := tests
 BENCHMARK_DIRS   := benchmarks
 DOCS_DIR         := docs
 
@@ -603,7 +603,10 @@ coverage:
 	@echo ""
 	@printf "$(COLOR_CYAN)Running tests with coverage...\n$(COLOR_RESET)"
 	@rm -f $(BUILD_DIR)/*.profraw
-	@LLVM_PROFILE_FILE="$(PWD)/$(BUILD_DIR)/default.profraw" $(BUILD_DIR)/lexer_tests
+	@LLVM_PROFILE_FILE="$(PWD)/$(BUILD_DIR)/lexer_unittest.profraw" $(BUILD_DIR)/lexer_unittest
+	@LLVM_PROFILE_FILE="$(PWD)/$(BUILD_DIR)/cli_unittest.profraw" $(BUILD_DIR)/cli_unittest
+	@LLVM_PROFILE_FILE="$(PWD)/$(BUILD_DIR)/lexer_integration.profraw" $(BUILD_DIR)/lexer_integration_tests
+	@LLVM_PROFILE_FILE="$(PWD)/$(BUILD_DIR)/cli_integration.profraw" $(BUILD_DIR)/cli_integration_tests
 	@echo ""
 	@printf "$(COLOR_GREEN)$(COLOR_BOLD)===================================\n$(COLOR_RESET)"
 	@printf "$(COLOR_GREEN)$(COLOR_BOLD)Coverage build completed!\n$(COLOR_RESET)"
@@ -621,22 +624,25 @@ coverage-report:
 	@printf "$(COLOR_BLUE)$(COLOR_BOLD)===================================\n$(COLOR_RESET)"
 	@if command -v llvm-profdata >/dev/null 2>&1 && command -v llvm-cov >/dev/null 2>&1; then \
 		printf "$(COLOR_CYAN)Using LLVM coverage tools...\n$(COLOR_RESET)"; \
-		PROFRAW=$$(find $(BUILD_DIR) -name "*.profraw" 2>/dev/null | head -1); \
-		if [ -n "$$PROFRAW" ]; then \
-			printf "$(COLOR_CYAN)Found profraw: $$PROFRAW\n$(COLOR_RESET)"; \
-			llvm-profdata merge -sparse $$PROFRAW -o $(BUILD_DIR)/coverage.profdata; \
-			TEST_BIN=$$(find $(BUILD_DIR) -name "lexer_tests" -type f -executable 2>/dev/null | head -1); \
-			if [ -z "$$TEST_BIN" ]; then \
-				TEST_BIN=$$(find $(BUILD_DIR) -name "*_tests" -type f -executable 2>/dev/null | head -1); \
-			fi; \
-			if [ -n "$$TEST_BIN" ]; then \
-				printf "$(COLOR_CYAN)Using test binary: $$TEST_BIN\n$(COLOR_RESET)"; \
-				llvm-cov show $$TEST_BIN -instr-profile=$(BUILD_DIR)/coverage.profdata \
+		PROFRAW_FILES=$$(find $(BUILD_DIR) -name "*.profraw" 2>/dev/null); \
+		if [ -n "$$PROFRAW_FILES" ]; then \
+			printf "$(COLOR_CYAN)Found profraw files:\n$$PROFRAW_FILES\n$(COLOR_RESET)"; \
+			llvm-profdata merge -sparse $$PROFRAW_FILES -o $(BUILD_DIR)/coverage.profdata; \
+			TEST_BINS=""; \
+			for bin in lexer_unittest cli_unittest lexer_integration_tests cli_integration_tests; do \
+				if [ -f "$(BUILD_DIR)/$$bin" ]; then \
+					TEST_BINS="$$TEST_BINS -object $(BUILD_DIR)/$$bin"; \
+				fi; \
+			done; \
+			if [ -n "$$TEST_BINS" ]; then \
+				printf "$(COLOR_CYAN)Using test binaries for coverage...\n$(COLOR_RESET)"; \
+				FIRST_BIN=$$(echo $$TEST_BINS | awk '{print $$2}'); \
+				llvm-cov show $$FIRST_BIN $$TEST_BINS -instr-profile=$(BUILD_DIR)/coverage.profdata \
 					--sources src/ include/ \
 					-format=html -output-dir=$(BUILD_DIR)/coverage_html; \
 				echo ""; \
 				printf "$(COLOR_CYAN)Coverage Summary (source files only):\n$(COLOR_RESET)"; \
-				llvm-cov report $$TEST_BIN -instr-profile=$(BUILD_DIR)/coverage.profdata \
+				llvm-cov report $$FIRST_BIN $$TEST_BINS -instr-profile=$(BUILD_DIR)/coverage.profdata \
 					--sources src/ include/; \
 				printf "\n$(COLOR_GREEN)Report: $(BUILD_DIR)/coverage_html/index.html\n$(COLOR_RESET)"; \
 			else \

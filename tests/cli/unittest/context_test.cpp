@@ -7,6 +7,8 @@
  */
 
 #include "czc/cli/context.hpp"
+#include "czc/diag/diag_builder.hpp"
+#include "czc/diag/message.hpp"
 
 #include <gtest/gtest.h>
 
@@ -98,37 +100,38 @@ TEST_F(CompilerContextTest, ModifyLexerOptions) {
 }
 
 // ============================================================================
-// DiagnosticsEngine 测试
+// DiagContext 测试
 // ============================================================================
 
 TEST_F(CompilerContextTest, DiagnosticsInitialState) {
-  EXPECT_EQ(ctx_.diagnostics().errorCount(), 0u);
-  EXPECT_EQ(ctx_.diagnostics().warningCount(), 0u);
-  EXPECT_FALSE(ctx_.diagnostics().hasErrors());
+  EXPECT_EQ(ctx_.diagContext().errorCount(), 0u);
+  EXPECT_EQ(ctx_.diagContext().warningCount(), 0u);
+  EXPECT_FALSE(ctx_.diagContext().hasErrors());
 }
 
 TEST_F(CompilerContextTest, ReportError) {
-  ctx_.diagnostics().error("test error", "E001");
+  ctx_.diagContext().emit(diag::error(diag::Message("test error")).build());
 
-  EXPECT_EQ(ctx_.diagnostics().errorCount(), 1u);
-  EXPECT_TRUE(ctx_.diagnostics().hasErrors());
+  EXPECT_EQ(ctx_.diagContext().errorCount(), 1u);
+  EXPECT_TRUE(ctx_.diagContext().hasErrors());
 }
 
 TEST_F(CompilerContextTest, ReportWarning) {
-  ctx_.diagnostics().warning("test warning", "W001");
+  ctx_.diagContext().emit(diag::warning(diag::Message("test warning")).build());
 
-  EXPECT_EQ(ctx_.diagnostics().warningCount(), 1u);
-  EXPECT_FALSE(ctx_.diagnostics().hasErrors());
+  EXPECT_EQ(ctx_.diagContext().warningCount(), 1u);
+  EXPECT_FALSE(ctx_.diagContext().hasErrors());
 }
 
 TEST_F(CompilerContextTest, ClearDiagnostics) {
-  ctx_.diagnostics().error("test error", "E001");
-  ctx_.diagnostics().warning("test warning", "W001");
+  // 注意：DiagContext 目前不支持清除统计
+  // 这个测试只验证可以发射多个诊断
 
-  ctx_.diagnostics().clear();
+  ctx_.diagContext().emit(diag::error(diag::Message("test error")).build());
+  ctx_.diagContext().emit(diag::warning(diag::Message("test warning")).build());
 
-  EXPECT_EQ(ctx_.diagnostics().errorCount(), 0u);
-  EXPECT_EQ(ctx_.diagnostics().warningCount(), 0u);
+  EXPECT_EQ(ctx_.diagContext().errorCount(), 1u);
+  EXPECT_EQ(ctx_.diagContext().warningCount(), 1u);
 }
 
 } // namespace

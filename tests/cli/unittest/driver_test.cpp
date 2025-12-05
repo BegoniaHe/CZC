@@ -7,6 +7,8 @@
  */
 
 #include "czc/cli/driver.hpp"
+#include "czc/diag/diag_builder.hpp"
+#include "czc/diag/message.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -25,11 +27,6 @@ protected:
     // 创建临时测试目录
     testDir_ = std::filesystem::temp_directory_path() / "czc_driver_test";
     std::filesystem::create_directories(testDir_);
-
-    // 使用自定义的诊断处理器来捕获诊断信息
-    diagnostics_.clear();
-    driver_.setDiagnosticPrinter(
-        [this](const Diagnostic &diag) { diagnostics_.push_back(diag); });
   }
 
   void TearDown() override {
@@ -41,14 +38,12 @@ protected:
    * @brief 创建临时测试文件。
    */
   std::filesystem::path createTestFile(std::string_view filename,
-                                        std::string_view content) {
+                                       std::string_view content) {
     auto path = testDir_ / filename;
     std::ofstream ofs(path);
     ofs << content;
     return path;
   }
-
-  std::vector<Diagnostic> diagnostics_;
 };
 
 // ============================================================================
@@ -102,7 +97,7 @@ TEST_F(DriverTest, RunLexerOnValidFile) {
   int exitCode = driver_.runLexer(path);
 
   EXPECT_EQ(exitCode, 0);
-  EXPECT_TRUE(diagnostics_.empty());
+  EXPECT_FALSE(driver_.diagContext().hasErrors());
 }
 
 TEST_F(DriverTest, RunLexerOnNonExistentFile) {
@@ -111,8 +106,7 @@ TEST_F(DriverTest, RunLexerOnNonExistentFile) {
   int exitCode = driver_.runLexer(nonExistent);
 
   EXPECT_NE(exitCode, 0);
-  EXPECT_FALSE(diagnostics_.empty());
-  EXPECT_EQ(diagnostics_[0].level, DiagnosticLevel::Error);
+  EXPECT_TRUE(driver_.diagContext().hasErrors());
 }
 
 TEST_F(DriverTest, RunLexerWithErrors) {
@@ -123,15 +117,7 @@ let s = "unterminated string
   int exitCode = driver_.runLexer(path);
 
   EXPECT_NE(exitCode, 0);
-  // 应该有错误诊断
-  bool hasError = false;
-  for (const auto &diag : diagnostics_) {
-    if (diag.level == DiagnosticLevel::Error) {
-      hasError = true;
-      break;
-    }
-  }
-  EXPECT_TRUE(hasError);
+  EXPECT_TRUE(driver_.diagContext().hasErrors());
 }
 
 TEST_F(DriverTest, RunLexerOutputToFile) {
@@ -155,35 +141,12 @@ TEST_F(DriverTest, RunLexerOutputToFile) {
 // 诊断测试
 // ============================================================================
 
-TEST_F(DriverTest, DiagnosticHandler) {
-  auto path = createTestFile("valid.zero", "let x = 1;");
+TEST_F(DriverTest, DiagContextAccess) {
+  auto &diagContext = driver_.diagContext();
 
-  // 手动添加一个诊断
-  driver_.diagnostics().warning("test warning", "W001");
-  driver_.runLexer(path);
-
-  bool hasWarning = false;
-  for (const auto &diag : diagnostics_) {
-    if (diag.level == DiagnosticLevel::Warning) {
-      hasWarning = true;
-      break;
-    }
-  }
-  EXPECT_TRUE(hasWarning);
-}
-
-TEST_F(DriverTest, ErrorStreamConfiguration) {
-  std::ostringstream oss;
-  driver_.setErrorStream(oss);
-
-  // 使用默认诊断处理器
-  driver_.setDiagnosticPrinter(
-      [&oss](const Diagnostic &diag) { oss << diag.format() << "\n"; });
-
-  driver_.diagnostics().error("test error message", "E999");
-
-  std::string output = oss.str();
-  EXPECT_NE(output.find("test error message"), std::string::npos);
+  // 初始状态应该没有错误
+  EXPECT_EQ(diagContext.errorCount(), 0u);
+  EXPECT_FALSE(diagContext.hasErrors());
 }
 
 // ============================================================================

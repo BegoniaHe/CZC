@@ -9,6 +9,8 @@
 #include "czc/cli/cli.hpp"
 #include "czc/cli/commands/lex_command.hpp"
 #include "czc/cli/commands/version_command.hpp"
+#include "czc/diag/diag_builder.hpp"
+#include "czc/diag/message.hpp"
 
 #include <iostream>
 
@@ -41,7 +43,8 @@ int Cli::run(int argc, char **argv) {
         return result.value();
       }
       // 输出错误信息
-      driver_.diagnostics().error(result.error().message, result.error().code);
+      driver_.diagContext().emit(
+          diag::error(diag::Message(result.error().message)).build());
       return 1;
     }
 

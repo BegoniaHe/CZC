@@ -19,6 +19,7 @@
 #include "czc/cli/context.hpp"
 #include "czc/common/config.hpp"
 #include "czc/common/result.hpp"
+#include "czc/diag/diagnostic.hpp"
 
 #include <filesystem>
 #include <functional>
@@ -27,11 +28,6 @@
 #include <string>
 
 namespace czc::cli {
-
-/**
- * @brief 诊断输出回调类型。
- */
-using DiagnosticPrinter = std::function<void(const Diagnostic &)>;
 
 /**
  * @brief 编译驱动器，协调整个编译过程。
@@ -83,9 +79,9 @@ public:
   /// 获取编译上下文（常量）
   [[nodiscard]] const CompilerContext &context() const noexcept { return ctx_; }
 
-  /// 获取诊断引擎
-  [[nodiscard]] DiagnosticsEngine &diagnostics() noexcept {
-    return ctx_.diagnostics();
+  /// 获取诊断上下文
+  [[nodiscard]] diag::DiagContext &diagContext() noexcept {
+    return ctx_.diagContext();
   }
 
   // ========== 配置方法 ==========
@@ -117,9 +113,6 @@ public:
     ctx_.global().colorDiagnostics = enabled;
   }
 
-  /// 设置诊断输出回调
-  void setDiagnosticPrinter(DiagnosticPrinter printer);
-
   // ========== 执行方法 ==========
 
   /**
@@ -133,7 +126,7 @@ public:
   /**
    * @brief 打印诊断摘要。
    */
-  void printDiagnosticSummary() const;
+  void printDiagnosticSummary();
 
   /**
    * @brief 设置错误输出流。
@@ -145,13 +138,6 @@ public:
 private:
   CompilerContext ctx_;
   std::ostream *errStream_{&std::cerr}; ///< 错误输出流（默认 stderr）
-
-  /**
-   * @brief 默认诊断打印器。
-   *
-   * @param diag 诊断信息
-   */
-  void defaultDiagnosticPrinter(const Diagnostic &diag) const;
 };
 
 } // namespace czc::cli

@@ -44,7 +44,7 @@ protected:
    * @brief 创建临时测试文件。
    */
   std::filesystem::path createTestFile(std::string_view filename,
-                                        std::string_view content) {
+                                       std::string_view content) {
     auto path = testDir_ / filename;
     std::ofstream ofs(path);
     ofs << content;
@@ -74,8 +74,7 @@ fn main() {
   cli::LexerPhase phase(ctx_);
   auto result = phase.runOnFile(path);
 
-  ASSERT_TRUE(result.has_value()) << "Lexer failed: "
-                                   << result.error().message;
+  ASSERT_TRUE(result.has_value()) << "Lexer failed: " << result.error().message;
   EXPECT_FALSE(result->hasErrors);
   EXPECT_GT(result->tokens.size(), 20u);
 
@@ -162,7 +161,8 @@ let x = 1;
       foundX = true;
     }
   }
-  EXPECT_TRUE(foundLet) << "Error recovery should allow parsing subsequent tokens";
+  EXPECT_TRUE(foundLet)
+      << "Error recovery should allow parsing subsequent tokens";
 }
 
 // ============================================================================
@@ -188,12 +188,14 @@ TEST_F(LexerIntegrationTest, ProcessMultipleFiles) {
 
   for (const auto &token : result1->tokens) {
     auto val = token.value(phase1.sourceManager());
-    if (val == "a") foundA = true;
+    if (val == "a")
+      foundA = true;
   }
 
   for (const auto &token : result2->tokens) {
     auto val = token.value(phase2.sourceManager());
-    if (val == "b") foundB = true;
+    if (val == "b")
+      foundB = true;
   }
 
   EXPECT_TRUE(foundA);

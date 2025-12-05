@@ -45,7 +45,7 @@ protected:
    * @brief 创建临时测试文件。
    */
   std::filesystem::path createTestFile(std::string_view filename,
-                                        std::string_view content) {
+                                       std::string_view content) {
     auto path = testDir_ / filename;
     std::ofstream ofs(path);
     ofs << content;

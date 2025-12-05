@@ -124,8 +124,10 @@ Token StringScanner::scanNormalString(ScanContext &ctx, std::size_t startOffset,
     auto ch = ctx.current();
     if (!ch.has_value()) {
       // 未闭合的字符串 - 到达文件末尾
+      // 计算从字符串开始到当前位置的长度
+      uint32_t spanLength = static_cast<uint32_t>(ctx.offset() - startOffset);
       ctx.reportError(LexerError::make(LexerErrorCode::UnterminatedString,
-                                       startLoc,
+                                       startLoc, spanLength,
                                        "unterminated string literal"));
       break;
     }

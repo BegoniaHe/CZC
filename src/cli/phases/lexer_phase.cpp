@@ -7,6 +7,7 @@
  */
 
 #include "czc/cli/phases/lexer_phase.hpp"
+#include "czc/lexer/lexer_source_locator.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -80,12 +81,9 @@ LexResult LexerPhase::runLexer(lexer::BufferID bufferId) {
   // 收集错误到诊断系统
   if (lex.hasErrors()) {
     result.hasErrors = true;
-    for (const auto &error : lex.errors()) {
-      ctx_.diagnostics().error(
-          error.formattedMessage, error.codeString(),
-          std::string(sourceManager_.getFilename(bufferId)),
-          error.location.line, error.location.column);
-    }
+    // 使用新的诊断系统桥接层发射 lexer 错误
+    lexer::emitLexerErrors(ctx_.diagContext(), lex.errors(), sourceManager_,
+                           bufferId);
   }
 
   return result;

@@ -101,12 +101,13 @@ enum class LexerErrorCode : std::uint16_t {
  * @brief 词法错误（预格式化存储）。
  *
  * @details
- *   存储错误的完整信息，包括错误码、位置和格式化后的消息。
+ *   存储错误的完整信息，包括错误码、位置、长度和格式化后的消息。
  *   采用工厂方法创建，确保类型安全。
  */
 struct LexerError {
   LexerErrorCode code;          ///< 错误码
   SourceLocation location;      ///< 错误位置
+  uint32_t length{1};           ///< 错误跨越的字符数（用于显示标注）
   std::string formattedMessage; ///< 预格式化的错误消息
 
   /**
@@ -124,19 +125,35 @@ struct LexerError {
    * @tparam Args 格式化参数类型
    * @param code 错误码
    * @param loc 错误位置
+   * @param len 错误跨越的字符数
    * @param fmt 格式字符串
    * @param args 格式化参数
    * @return 构造好的 LexerError
    */
   template <typename... Args>
-  [[nodiscard]] static LexerError make(LexerErrorCode code, SourceLocation loc,
-                                       std::format_string<Args...> fmt,
-                                       Args &&...args) {
-    return {code, loc, std::format(fmt, std::forward<Args>(args)...)};
+  [[nodiscard]] static LexerError
+  make(LexerErrorCode code, SourceLocation loc, uint32_t len,
+       std::format_string<Args...> fmt, Args &&...args) {
+    return {code, loc, len, std::format(fmt, std::forward<Args>(args)...)};
   }
 
   /**
    * @brief 创建简单错误（无格式化参数）。
+   *
+   * @param code 错误码
+   * @param loc 错误位置
+   * @param len 错误跨越的字符数
+   * @param message 错误消息
+   * @return 构造好的 LexerError
+   */
+  [[nodiscard]] static LexerError simple(LexerErrorCode code,
+                                         SourceLocation loc, uint32_t len,
+                                         std::string message) {
+    return {code, loc, len, std::move(message)};
+  }
+
+  /**
+   * @brief 创建简单错误（默认长度为 1）。
    *
    * @param code 错误码
    * @param loc 错误位置
@@ -145,7 +162,7 @@ struct LexerError {
    */
   [[nodiscard]] static LexerError
   simple(LexerErrorCode code, SourceLocation loc, std::string message) {
-    return {code, loc, std::move(message)};
+    return {code, loc, 1, std::move(message)};
   }
 };
 

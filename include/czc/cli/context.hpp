@@ -17,7 +17,8 @@
 #define CZC_CLI_CONTEXT_HPP
 
 #include "czc/common/config.hpp"
-#include "czc/common/diagnostics.hpp"
+#include "czc/diag/diag_context.hpp"
+#include "czc/diag/emitters/text_emitter.hpp"
 
 #include <filesystem>
 #include <memory>
@@ -94,7 +95,7 @@ struct ParserOptions {
  *   LexerPhase lexer(ctx);
  *   lexer.run(sourceFile);
  *
- *   if (ctx.diagnostics().hasErrors()) {
+ *   if (ctx.diagContext().hasErrors()) {
  *     // 处理错误
  *   }
  *   @endcode
@@ -104,7 +105,7 @@ public:
   /**
    * @brief 默认构造函数。
    */
-  CompilerContext() = default;
+  CompilerContext();
 
   /**
    * @brief 带选项的构造函数。
@@ -112,8 +113,7 @@ public:
    * @param global 全局选项
    * @param output 输出选项
    */
-  CompilerContext(GlobalOptions global, OutputOptions output)
-      : global_(std::move(global)), output_(std::move(output)) {}
+  CompilerContext(GlobalOptions global, OutputOptions output);
 
   ~CompilerContext() = default;
 
@@ -153,14 +153,14 @@ public:
 
   // ========== 诊断系统 ==========
 
-  /// 获取诊断引擎（可变）
-  [[nodiscard]] DiagnosticsEngine &diagnostics() noexcept {
-    return diagnostics_;
+  /// 获取诊断上下文（可变）
+  [[nodiscard]] diag::DiagContext &diagContext() noexcept {
+    return *diagContext_;
   }
 
-  /// 获取诊断引擎（常量）
-  [[nodiscard]] const DiagnosticsEngine &diagnostics() const noexcept {
-    return diagnostics_;
+  /// 获取诊断上下文（常量）
+  [[nodiscard]] const diag::DiagContext &diagContext() const noexcept {
+    return *diagContext_;
   }
 
   // ========== 便捷方法 ==========
@@ -178,7 +178,17 @@ public:
 
   /// 检查是否有编译错误
   [[nodiscard]] bool hasErrors() const noexcept {
-    return diagnostics_.hasErrors();
+    return diagContext_->hasErrors();
+  }
+
+  /// 获取错误数量
+  [[nodiscard]] size_t errorCount() const noexcept {
+    return diagContext_->errorCount();
+  }
+
+  /// 获取警告数量
+  [[nodiscard]] size_t warningCount() const noexcept {
+    return diagContext_->warningCount();
   }
 
 private:
@@ -186,7 +196,10 @@ private:
   OutputOptions output_;
   LexerOptions lexer_;
   ParserOptions parser_;
-  DiagnosticsEngine diagnostics_;
+  std::unique_ptr<diag::DiagContext> diagContext_;
+
+  /// 创建诊断上下文
+  void initDiagContext();
 };
 
 } // namespace czc::cli

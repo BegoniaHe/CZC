@@ -141,7 +141,7 @@ TEST_F(FormatterTest, CreateJsonFormatter) {
 
 TEST_F(FormatterTest, TextFormatterFormatErrors) {
   std::vector<lexer::LexerError> errors;
-  errors.push_back(lexer::LexerError::make(
+  errors.push_back(lexer::LexerError::simple(
       lexer::LexerErrorCode::UnterminatedString,
       lexer::SourceLocation{lexer::BufferID{1}, 5, 10, 100},
       "unterminated string literal"));
@@ -156,7 +156,7 @@ TEST_F(FormatterTest, TextFormatterFormatErrors) {
 
 TEST_F(FormatterTest, JsonFormatterFormatErrors) {
   std::vector<lexer::LexerError> errors;
-  errors.push_back(lexer::LexerError::make(
+  errors.push_back(lexer::LexerError::simple(
       lexer::LexerErrorCode::InvalidCharacter,
       lexer::SourceLocation{lexer::BufferID{1}, 1, 1, 0}, "invalid character"));
 

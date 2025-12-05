@@ -72,12 +72,46 @@ FetchContent_Declare(
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(cli11 glaze tomlplusplus googletest)
+# cmark - Markdown 解析库
+FetchContent_Declare(
+    cmark
+    GIT_REPOSITORY https://github.com/commonmark/cmark.git
+    GIT_TAG        0.31.1
+)
+# 禁用 cmark 测试
+set(CMARK_TESTS OFF CACHE BOOL "" FORCE)
+set(CMARK_SHARED OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(cli11 glaze tomlplusplus googletest cmark)
 
 # ============================================================================
 # 包含目录
 # ============================================================================
 include_directories(${CMAKE_SOURCE_DIR}/include)
+
+# ============================================================================
+# Diag 库（诊断系统）
+# ============================================================================
+set(DIAG_SOURCES
+    src/diag/span.cpp
+    src/diag/error_code.cpp
+    src/diag/message.cpp
+    src/diag/i18n.cpp
+    src/diag/diagnostic.cpp
+    src/diag/diag_builder.cpp
+    src/diag/diag_context.cpp
+    src/diag/emitters/ansi_renderer.cpp
+    src/diag/emitters/text_emitter.cpp
+    src/diag/emitters/json_emitter.cpp
+)
+
+add_library(czc_diag STATIC ${DIAG_SOURCES})
+target_include_directories(czc_diag PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(czc_diag 
+    PUBLIC cmark
+    PUBLIC tomlplusplus::tomlplusplus
+    PUBLIC glaze::glaze
+)
 
 # ============================================================================
 # Lexer 库
@@ -95,6 +129,8 @@ set(LEXER_SOURCES
     src/lexer/char_scanner.cpp
     src/lexer/lexer_error.cpp
     src/lexer/lexer.cpp
+    src/lexer/lexer_error_codes.cpp
+    src/lexer/lexer_source_locator.cpp
 )
 
 # 查找 ICU 库（用于 Unicode 支持）
@@ -107,13 +143,17 @@ find_package(ICU COMPONENTS uc REQUIRED)
 
 add_library(czc_lexer STATIC ${LEXER_SOURCES})
 target_include_directories(czc_lexer PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(czc_lexer PUBLIC ICU::uc)
+target_link_libraries(czc_lexer 
+    PUBLIC ICU::uc
+    PUBLIC czc_diag
+)
 
 # ============================================================================
 # CLI 库
 # ============================================================================
 set(CLI_SOURCES
     src/cli/cli.cpp
+    src/cli/context.cpp
     src/cli/driver.cpp
     src/cli/phases/lexer_phase.cpp
     src/cli/output/text_formatter.cpp
@@ -180,6 +220,7 @@ if(ENABLE_COVERAGE)
     target_link_libraries(lexer_unittest 
         PRIVATE GTest::gtest_main
         PRIVATE ICU::uc
+        PRIVATE czc_diag
     )
 else()
     add_executable(lexer_unittest ${LEXER_UNITTEST_SOURCES})

@@ -100,9 +100,11 @@ Token CommentScanner::scanBlockComment(ScanContext &ctx,
   while (true) {
     auto current = ctx.current();
     if (!current.has_value()) {
-      // 未闭合的块注释
+      // 未闭合的块注释 - 计算从注释开始到当前位置的长度
+      uint32_t spanLength = static_cast<uint32_t>(ctx.offset() - startOffset);
       ctx.reportError(LexerError::make(LexerErrorCode::UnterminatedBlockComment,
-                                       startLoc, "unterminated block comment"));
+                                       startLoc, spanLength,
+                                       "unterminated block comment"));
       break;
     }
 
