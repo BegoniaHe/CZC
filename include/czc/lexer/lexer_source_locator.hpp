@@ -15,6 +15,7 @@
 
 #include "czc/diag/diag_context.hpp"
 #include "czc/diag/diagnostic.hpp"
+#include "czc/diag/i18n.hpp"
 #include "czc/diag/source_locator.hpp"
 #include "czc/lexer/lexer_error.hpp"
 #include "czc/lexer/source_manager.hpp"
@@ -65,7 +66,11 @@ private:
 // ============================================================================
 
 /// 将 LexerError 转换为 Diagnostic
-[[nodiscard]] auto toDiagnostic(const LexerError &err, const SourceManager &sm)
+/// @param err 词法错误
+/// @param sm 源码管理器
+/// @param translator 翻译器（用于 i18n 标签和帮助信息）
+[[nodiscard]] auto toDiagnostic(const LexerError &err, const SourceManager &sm,
+                                const diag::i18n::Translator &translator)
     -> diag::Diagnostic;
 
 /// 从 LexerError 提取 Span

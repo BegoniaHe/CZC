@@ -50,9 +50,42 @@ auto parseLocale(std::string_view str) -> Locale {
 
 Translator::Translator() = default;
 
-auto Translator::instance() -> Translator & {
-  static Translator translator;
-  return translator;
+// 拷贝构造函数
+Translator::Translator(const Translator &other) {
+  std::lock_guard lock(other.mutex_);
+  locale_ = other.locale_;
+  translations_ = other.translations_;
+  fallback_ = other.fallback_;
+}
+
+// 拷贝赋值运算符
+auto Translator::operator=(const Translator &other) -> Translator & {
+  if (this != &other) {
+    std::scoped_lock lock(mutex_, other.mutex_);
+    locale_ = other.locale_;
+    translations_ = other.translations_;
+    fallback_ = other.fallback_;
+  }
+  return *this;
+}
+
+// 移动构造函数
+Translator::Translator(Translator &&other) noexcept {
+  std::lock_guard lock(other.mutex_);
+  locale_ = other.locale_;
+  translations_ = std::move(other.translations_);
+  fallback_ = std::move(other.fallback_);
+}
+
+// 移动赋值运算符
+auto Translator::operator=(Translator &&other) noexcept -> Translator & {
+  if (this != &other) {
+    std::scoped_lock lock(mutex_, other.mutex_);
+    locale_ = other.locale_;
+    translations_ = std::move(other.translations_);
+    fallback_ = std::move(other.fallback_);
+  }
+  return *this;
 }
 
 void Translator::setLocale(Locale locale) {
@@ -168,13 +201,13 @@ auto Translator::formatPlaceholders(
 // TranslationScope 实现
 // ============================================================================
 
-TranslationScope::TranslationScope(Locale tempLocale)
-    : previousLocale_(Translator::instance().currentLocale()) {
-  Translator::instance().setLocale(tempLocale);
+TranslationScope::TranslationScope(Translator &translator, Locale tempLocale)
+    : translator_(translator), previousLocale_(translator.currentLocale()) {
+  translator_.setLocale(tempLocale);
 }
 
 TranslationScope::~TranslationScope() {
-  Translator::instance().setLocale(previousLocale_);
+  translator_.setLocale(previousLocale_);
 }
 
 } // namespace czc::diag::i18n

@@ -9,16 +9,50 @@
 #include "czc/diag/diag_context.hpp"
 #include "czc/diag/emitter.hpp"
 
+#include <functional>
 #include <mutex>
 #include <set>
+#include <unordered_set>
 
 namespace czc::diag {
+
+namespace {
+
+/// 计算诊断的哈希值，用于去重
+[[nodiscard]] auto computeDiagnosticHash(const Diagnostic &diag) -> size_t {
+  size_t hash = 0;
+
+  // 组合哈希值的辅助函数
+  auto combineHash = [&hash](size_t value) {
+    hash ^= value + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+  };
+
+  // 哈希消息内容
+  combineHash(std::hash<std::string_view>{}(diag.message.markdown()));
+
+  // 哈希错误码
+  if (diag.code) {
+    combineHash(diag.code->hash());
+  }
+
+  // 哈希主要位置
+  auto primarySpan = diag.primarySpan();
+  if (primarySpan) {
+    combineHash(std::hash<uint32_t>{}(primarySpan->fileId));
+    combineHash(std::hash<uint32_t>{}(primarySpan->startOffset));
+  }
+
+  return hash;
+}
+
+} // namespace
 
 /// DiagContext 内部实现
 struct DiagContext::Impl {
   std::unique_ptr<Emitter> emitter;
   const SourceLocator *locator{nullptr};
   DiagConfig config;
+  std::unique_ptr<i18n::Translator> translator;
 
   // 统计数据
   size_t errorCount{0};
@@ -27,20 +61,23 @@ struct DiagContext::Impl {
   bool hadFatal{false};
   std::set<ErrorCode> uniqueErrorCodes; ///< 唯一错误码集合
 
-  // 去重（可选）
-  std::set<std::string> seenDiagnostics;
+  // 去重（使用哈希值）
+  std::unordered_set<size_t> seenDiagnosticHashes;
 
   // 线程安全
   mutable std::mutex mutex;
 
-  Impl(std::unique_ptr<Emitter> e, const SourceLocator *l, DiagConfig c)
-      : emitter(std::move(e)), locator(l), config(std::move(c)) {}
+  Impl(std::unique_ptr<Emitter> e, const SourceLocator *l, DiagConfig c,
+       std::unique_ptr<i18n::Translator> t)
+      : emitter(std::move(e)), locator(l), config(std::move(c)),
+        translator(t ? std::move(t) : std::make_unique<i18n::Translator>()) {}
 };
 
 DiagContext::DiagContext(std::unique_ptr<Emitter> emitter,
-                         const SourceLocator *locator, DiagConfig config)
+                         const SourceLocator *locator, DiagConfig config,
+                         std::unique_ptr<i18n::Translator> translator)
     : impl_(std::make_unique<Impl>(std::move(emitter), locator,
-                                   std::move(config))) {}
+                                   std::move(config), std::move(translator))) {}
 
 DiagContext::~DiagContext() = default;
 
@@ -55,22 +92,13 @@ void DiagContext::emit(Diagnostic diag) {
     diag.level = Level::Error;
   }
 
-  // 去重检查
+  // 去重检查（使用哈希值）
   if (impl_->config.deduplicate) {
-    std::string key = diag.message.markdown().data();
-    if (diag.code) {
-      key = diag.code->toString() + ":" + key;
-    }
-    auto primarySpan = diag.primarySpan();
-    if (primarySpan) {
-      key += ":" + std::to_string(primarySpan->fileId) + ":" +
-             std::to_string(primarySpan->startOffset);
-    }
-
-    if (impl_->seenDiagnostics.contains(key)) {
+    size_t hash = computeDiagnosticHash(diag);
+    if (impl_->seenDiagnosticHashes.contains(hash)) {
       return;
     }
-    impl_->seenDiagnostics.insert(key);
+    impl_->seenDiagnosticHashes.insert(hash);
   }
 
   // 更新统计
@@ -212,6 +240,14 @@ auto DiagContext::config() const noexcept -> const DiagConfig & {
 }
 
 auto DiagContext::config() noexcept -> DiagConfig & { return impl_->config; }
+
+auto DiagContext::translator() noexcept -> i18n::Translator & {
+  return *impl_->translator;
+}
+
+auto DiagContext::translator() const noexcept -> const i18n::Translator & {
+  return *impl_->translator;
+}
 
 void DiagContext::flush() {
   std::lock_guard lock(impl_->mutex);

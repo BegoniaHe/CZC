@@ -261,6 +261,28 @@ endif()
 gtest_discover_tests(lexer_integration_tests)
 
 # ============================================================================
+# Diag 单元测试
+# ============================================================================
+set(DIAG_UNITTEST_SOURCES
+    tests/diag/unittest/i18n_test.cpp
+    tests/diag/unittest/diag_context_test.cpp
+)
+
+add_executable(diag_unittest ${DIAG_UNITTEST_SOURCES})
+target_link_libraries(diag_unittest 
+    PRIVATE czc_diag
+    PRIVATE GTest::gtest_main
+)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    target_compile_options(diag_unittest PRIVATE -Wall -Wextra -Wpedantic)
+elseif(MSVC)
+    target_compile_options(diag_unittest PRIVATE /W4)
+endif()
+
+gtest_discover_tests(diag_unittest)
+
+# ============================================================================
 # CLI 单元测试
 # ============================================================================
 set(CLI_UNITTEST_SOURCES

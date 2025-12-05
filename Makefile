@@ -349,7 +349,7 @@ rebuild: clean build
 test: build
 	$(call ts_msg,Running Tests)
 	@printf "$(COLOR_CYAN)Running Google Tests...\n$(COLOR_RESET)"
-	@cd $(BUILD_DIR) && $(CTEST) --output-on-failure --parallel $(NPROC)
+	@cd $(BUILD_DIR) && $(CTEST) --output-on-failure
 	$(call ts_done,Tests Complete)
 
 # ============================================================================

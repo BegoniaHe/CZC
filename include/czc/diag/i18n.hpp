@@ -39,12 +39,13 @@ enum class Locale : uint8_t {
 /// 从字符串解析区域设置
 [[nodiscard]] auto parseLocale(std::string_view str) -> Locale;
 
-/// 翻译器 - 全局单例
+/// 翻译器
 /// 借鉴 rustc Translator 设计，支持回退机制
+/// 通过依赖注入方式使用，由 DiagContext 持有实例
 class Translator {
 public:
-  /// 获取全局单例
-  [[nodiscard]] static auto instance() -> Translator &;
+  /// 默认构造函数
+  Translator();
 
   /// 设置当前语言
   void setLocale(Locale locale);
@@ -82,15 +83,17 @@ public:
   /// 获取错误的详细解释
   [[nodiscard]] auto getErrorExplanation(ErrorCode code) const -> Message;
 
-  // 禁止拷贝
-  Translator(const Translator &) = delete;
-  auto operator=(const Translator &) -> Translator & = delete;
-  Translator(Translator &&) = delete;
-  auto operator=(Translator &&) -> Translator & = delete;
+  // 可拷贝（用于依赖注入场景的复制配置）
+  Translator(const Translator &);
+  auto operator=(const Translator &) -> Translator &;
+
+  // 可移动
+  Translator(Translator &&) noexcept;
+  auto operator=(Translator &&) noexcept -> Translator &;
+
+  ~Translator() = default;
 
 private:
-  Translator();
-
   /// 格式化辅助函数
   template <typename... Args>
   auto formatWithArgs(std::string_view tmpl, Args &&...args) const
@@ -128,9 +131,13 @@ private:
 };
 
 /// RAII 临时语言切换
+/// @note 需要传入 Translator 引用，不再依赖全局状态
 class [[nodiscard]] TranslationScope {
 public:
-  explicit TranslationScope(Locale tempLocale);
+  /// 构造临时语言切换
+  /// @param translator 翻译器引用
+  /// @param tempLocale 临时语言
+  TranslationScope(Translator &translator, Locale tempLocale);
   ~TranslationScope();
 
   TranslationScope(const TranslationScope &) = delete;
@@ -139,6 +146,7 @@ public:
   auto operator=(TranslationScope &&) -> TranslationScope & = delete;
 
 private:
+  Translator &translator_;
   Locale previousLocale_;
 };
 

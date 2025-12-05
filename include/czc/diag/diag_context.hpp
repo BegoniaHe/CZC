@@ -16,6 +16,7 @@
 #include "czc/diag/diagnostic.hpp"
 #include "czc/diag/emitter.hpp"
 #include "czc/diag/error_guaranteed.hpp"
+#include "czc/diag/i18n.hpp"
 #include "czc/diag/source_locator.hpp"
 
 #include <functional>
@@ -24,7 +25,6 @@
 
 namespace czc::diag {
 
-// 前向声明
 class Emitter;
 
 /// 诊断配置
@@ -42,9 +42,14 @@ struct DiagConfig {
 class DiagContext {
 public:
   /// 构造诊断上下文
+  /// @param emitter 诊断发射器
+  /// @param locator 源码定位器（可选）
+  /// @param config 诊断配置
+  /// @param translator 翻译器（可选，默认创建新实例）
   explicit DiagContext(std::unique_ptr<Emitter> emitter,
                        const SourceLocator *locator = nullptr,
-                       DiagConfig config = {});
+                       DiagConfig config = {},
+                       std::unique_ptr<i18n::Translator> translator = nullptr);
 
   /// 析构函数
   ~DiagContext();
@@ -118,6 +123,12 @@ public:
   /// 获取可变配置
   [[nodiscard]] auto config() noexcept -> DiagConfig &;
 
+  /// 获取翻译器
+  [[nodiscard]] auto translator() noexcept -> i18n::Translator &;
+
+  /// 获取翻译器
+  [[nodiscard]] auto translator() const noexcept -> const i18n::Translator &;
+
   /// 刷新输出
   void flush();
 
@@ -125,7 +136,7 @@ private:
   struct Impl;
   std::unique_ptr<Impl> impl_;
 
-  /// 创建 ErrorGuaranteed（友元访问）
+  /// 创建 ErrorGuaranteed
   [[nodiscard]] auto createErrorGuaranteed() -> ErrorGuaranteed;
 };
 

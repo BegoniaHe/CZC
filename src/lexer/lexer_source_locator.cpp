@@ -111,7 +111,8 @@ auto getI18nKeyPrefix(LexerErrorCode code) -> std::string {
 
 } // namespace
 
-auto toDiagnostic(const LexerError &err, const SourceManager & /*sm*/)
+auto toDiagnostic(const LexerError &err, const SourceManager & /*sm*/,
+                  const diag::i18n::Translator &translator)
     -> diag::Diagnostic {
   // 从 LexerErrorCode 映射到 diag::ErrorCode
   auto diagCode = diag::ErrorCode(diag::ErrorCategory::Lexer,
@@ -122,7 +123,6 @@ auto toDiagnostic(const LexerError &err, const SourceManager & /*sm*/)
 
   // 获取 i18n 键前缀
   auto keyPrefix = getI18nKeyPrefix(err.code);
-  auto &translator = diag::i18n::Translator::instance();
 
   // 获取标签
   std::string label;
@@ -155,9 +155,12 @@ void emitLexerErrors(diag::DiagContext &dcx, std::span<const LexerError> errors,
   LexerSourceLocator locator(sm);
   dcx.setLocator(&locator);
 
+  // 获取 DiagContext 中的 Translator
+  const auto &translator = dcx.translator();
+
   // 发射所有错误
   for (const auto &err : errors) {
-    dcx.emit(toDiagnostic(err, sm));
+    dcx.emit(toDiagnostic(err, sm, translator));
   }
 }
 
